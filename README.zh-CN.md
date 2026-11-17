@@ -6,8 +6,8 @@
 ![台灯开关示例卡：左边开关抬起、灯不亮，右边开关落下、灯亮](docs/screenshots/lamp-dark.png)
 
 上面这张卡就是 [`examples/lamp-switch.md`](examples/lamp-switch.md) 里的第一个块。同一张卡在
-[浅色主题](docs/screenshots/lamp-light.png) 下不用改一个字自动换色；[流程图](docs/screenshots/flow-dark.png) 与
-[看板](docs/screenshots/board-dark.png) 同样是一个 `h5-renderer` 里的静态 HTML。
+[浅色主题](docs/screenshots/lamp-light.png) 下不用改一个字自动换色；[流程图](docs/screenshots/flow-dark.png)、
+[指标卡](docs/screenshots/kpi-dark.png) 与 [看板](docs/screenshots/board-dark.png) 同样是一个 `h5-renderer` 里的静态 HTML。
 
 **这个插件不做的事：**
 

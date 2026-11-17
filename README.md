@@ -8,8 +8,8 @@ view. Chinese version: [README.zh-CN.md](README.zh-CN.md).
 
 That card is the first block of [`examples/lamp-switch.md`](examples/lamp-switch.md). The same
 card under the [light theme](docs/screenshots/lamp-light.png) needs no edit at all, and the
-[flowchart](docs/screenshots/flow-dark.png) and [kanban](docs/screenshots/board-dark.png) are
-plain static HTML inside the same fence.
+[flowchart](docs/screenshots/flow-dark.png), [metrics](docs/screenshots/kpi-dark.png) and
+[kanban](docs/screenshots/board-dark.png) are plain static HTML inside the same fence.
 
 **What this plugin never does:**
 
