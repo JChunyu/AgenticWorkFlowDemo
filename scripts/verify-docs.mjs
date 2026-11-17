@@ -50,6 +50,41 @@ for (const readmePath of README_PATHS) {
   }
 }
 
+/*
+ * Version agreement: Obsidian reads `manifest.json`, the community directory and BRAT
+ * read `versions.json`, npm reads `package.json`. Three files, one number — a release
+ * that ships them disagreeing is a support ticket.
+ */
+const manifestRaw = await readIfExists(path.join(ROOT, 'manifest.json'));
+const packageRaw = await readIfExists(path.join(ROOT, 'package.json'));
+const versionsRaw = await readIfExists(path.join(ROOT, 'versions.json'));
+if (manifestRaw === null || packageRaw === null) {
+  problems.push('missing manifest.json or package.json');
+} else {
+  const manifest = JSON.parse(manifestRaw);
+  const pkg = JSON.parse(packageRaw);
+
+  if (manifest.version !== pkg.version) {
+    problems.push(
+      `manifest.version (${manifest.version}) and package.json version (${pkg.version}) disagree`,
+    );
+  }
+
+  if (versionsRaw === null) {
+    problems.push('missing versions.json — no version→minAppVersion map for the community directory');
+  } else {
+    const versions = JSON.parse(versionsRaw);
+    const pinned = versions[manifest.version];
+    if (pinned === undefined) {
+      problems.push(`versions.json has no entry for ${manifest.version}`);
+    } else if (pinned !== manifest.minAppVersion) {
+      problems.push(
+        `versions.json["${manifest.version}"] is ${pinned} but manifest.minAppVersion is ${manifest.minAppVersion}`,
+      );
+    }
+  }
+}
+
 /* The built bundle must carry the card by build-time import, not a hand copy. */
 const bundle = await readIfExists(path.join(ROOT, 'main.js'));
 if (bundle === null) {

@@ -1,5 +1,5 @@
+import { blockId, normalizeSource } from '../../core/block-id';
 import type { BlockDescriptor } from '../../core/contracts';
-import { hashSource } from '../../core/hash';
 import { SENTINEL_FENCE } from '../../core/settings';
 
 const SENTINEL_CLASS = `language-${SENTINEL_FENCE}`;
@@ -61,10 +61,9 @@ export function collect(el: HTMLElement): BlockDescriptor[] {
   const descriptors: BlockDescriptor[] = [];
 
   for (const codeEl of all) {
-    const sourceText = codeEl.textContent ?? '';
-    const hash = hashSource(sourceText);
-    const occurrenceIndex = seen.get(hash) ?? 0;
-    seen.set(hash, occurrenceIndex + 1);
+    const sourceText = normalizeSource(codeEl.textContent ?? '');
+    const occurrenceIndex = seen.get(sourceText) ?? 0;
+    seen.set(sourceText, occurrenceIndex + 1);
 
     if (!el.contains(codeEl)) {
       continue;
@@ -74,7 +73,7 @@ export function collect(el: HTMLElement): BlockDescriptor[] {
       continue;
     }
     descriptors.push({
-      id: `${hash}:${occurrenceIndex}`,
+      id: blockId(sourceText, occurrenceIndex),
       sourceText,
       codeEl,
       preEl: sourceElementFor(codeEl),

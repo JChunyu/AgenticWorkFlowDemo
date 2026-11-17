@@ -1,5 +1,6 @@
 import { MarkdownView, Plugin } from 'obsidian';
 import { copyConstraintCard, insertSampleNote, registerCommands, type CommandDeps } from './adapters/commands';
+import { createEditorExtension, refreshEditorDecorations } from './adapters/editor-ext';
 import { OnboardingController } from './adapters/onboarding';
 import { H5SettingsTab, SettingsStore } from './adapters/settings';
 import { detectLang, type Lang } from './core/i18n';
@@ -58,6 +59,15 @@ export default class H5RendererPlugin extends Plugin {
     };
 
     /*
+     * Registered once and gated at rebuild time, so flipping the switch needs no
+     * re-registration: `refreshEditorDecorations` supplies the transaction that makes
+     * the editor re-project its blocks.
+     */
+    this.registerEditorExtension(
+      createEditorExtension({ enabled: () => this.store.snapshot.enabled }),
+    );
+
+    /*
      * Registered once for the plugin's lifetime: disabling does not unregister a
      * post-processor, so `handleElement` short-circuits and every host is detached,
      * which is what "disabled equals plugin-absent" requires at the user surface.
@@ -103,6 +113,8 @@ export default class H5RendererPlugin extends Plugin {
       this.registry.teardownAll(true);
     }
     this.refreshOpenNotes();
+    /* The editor keeps its extension; it only needs a nudge to re-project blocks. */
+    refreshEditorDecorations();
   }
 
   /** Re-renders every open note so post-processors run again on its blocks. */

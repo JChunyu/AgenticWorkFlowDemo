@@ -22,6 +22,17 @@ const OBSIDIAN_IMPORT = new RegExp(
   ].join('|'),
 );
 
+/** AD-16: CodeMirror is reached only through the one editor adapter. */
+const CODEMIRROR_IMPORT = new RegExp(
+  [
+    /from\s+['"]@codemirror\//.source,
+    /require\(\s*['"]@codemirror\//.source,
+    /import\s+['"]@codemirror\//.source,
+    /import\(\s*['"]@codemirror\//.source,
+  ].join('|'),
+);
+const EDITOR_ADAPTER = 'src/adapters/editor-ext.ts';
+
 /** AD-2 dependency direction: adapters → view → pipeline → core, never backwards. */
 const LAYER_RULES = [
   { dir: 'src/core', forbidden: ['pipeline', 'view', 'adapters'] },
@@ -79,6 +90,22 @@ async function assertLayerBoundaries() {
     }
   }
 
+  /*
+   * AD-16 is a runtime promise — `view/` and `pipeline/` never learn CodeMirror
+   * exists — and until now only prose enforced it. A type-only import leaks just as
+   * badly as a value import, so the pattern covers both shapes.
+   */
+  for await (const file of walkDirectories(path.join(ROOT, 'src'))) {
+    if (!file.endsWith('.ts')) continue;
+    const relative = path.relative(ROOT, file);
+    /* `path.relative` uses `\` on Windows: compare on POSIX separators. */
+    if (relative.split(path.sep).join('/') === EDITOR_ADAPTER) continue;
+    const text = await readFile(file, 'utf8');
+    if (CODEMIRROR_IMPORT.test(text)) {
+      offenders.push(`${relative} imports @codemirror (AD-16: only ${EDITOR_ADAPTER} may)`);
+    }
+  }
+
   for (const rule of LAYER_RULES) {
     const patterns = rule.forbidden.map((layer) => new RegExp(`from\\s+['"][^'"]*/${layer}/`));
     for await (const file of walkDirectories(path.join(ROOT, rule.dir))) {
@@ -106,7 +133,14 @@ const options = {
   entryPoints: [path.join(ROOT, 'src/main.ts')],
   outfile: path.join(ROOT, 'main.js'),
   bundle: true,
-  external: ['obsidian'],
+  /*
+   * CodeMirror ships inside Obsidian and is taken from the host at runtime
+   * (AD-2 / AD-16). `external` guarantees no copy of it can ever be bundled next to
+   * the host's, and the adapter loads it lazily so the export-shape probe below can
+   * still require the bundle in plain Node. The two imports are type-only today, so
+   * nothing resolves at build time either way — the entry is the belt to that brace.
+   */
+  external: ['obsidian', '@codemirror/*'],
   format: 'cjs',
   target: 'es2018',
   platform: 'browser',
@@ -132,6 +166,30 @@ const OBSIDIAN_STUB = `const stub = new Proxy(function () {}, {
   apply: () => stub,
 });
 module.exports = stub;`;
+
+/**
+ * `external` is a promise the bundle has to keep: the host's CodeMirror must be
+ * required at runtime, and no copy of it may be inlined next to the host's.
+ */
+async function assertHostModulesExternal() {
+  const fsPromises = await import('node:fs/promises');
+  const bundle = await fsPromises.readFile(options.outfile, 'utf8');
+
+  for (const specifier of ['@codemirror/view', '@codemirror/state']) {
+    if (!bundle.includes(`"${specifier}"`)) {
+      console.error(`[build] ${specifier} is not required at runtime any more`);
+      process.exit(1);
+    }
+  }
+
+  /* A string that only exists inside @codemirror/view: its presence means a copy was bundled. */
+  if (bundle.includes('Block decorations may not be specified via plugins')) {
+    console.error('[build] @codemirror/view was inlined; it must come from the host');
+    process.exit(1);
+  }
+
+  console.info('[build] host modules ok: CodeMirror is required, not bundled');
+}
 
 async function assertExportShape() {
   const { createRequire } = await import('node:module');
@@ -190,6 +248,7 @@ if (WATCH) {
   console.info('[build] watching…');
 } else {
   await esbuild.build(options);
+  await assertHostModulesExternal();
   await assertExportShape();
   console.info('[build] main.js written');
 }

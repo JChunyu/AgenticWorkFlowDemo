@@ -35,10 +35,10 @@ view. Chinese version: [README.zh-CN.md](README.zh-CN.md).
 
 **Preview while editing, and in reading view.** The card is there while you type: click it
 and it opens as editable source at the line you clicked; click anywhere else and the card
-comes back. The top-right toggle keeps one block as source for as long as you like. Both
-behaviours are view state only — the file never changes. A card turns back into source the
-moment your cursor sits inside its block, so typing is never interrupted. Cards appear in
-print and in exported PDF too.
+comes back. In reading view the top-right toggle keeps one block as source for as long as
+you like. Both behaviours are view state only — the file never changes. A card turns back
+into source the moment your cursor sits inside its block, so typing is never interrupted.
+Cards appear in print and in exported PDF too.
 
 ## Install
 
@@ -53,12 +53,57 @@ here is designed to break there.
 1. Run **Insert sample note** from the command palette to get a three-card example.
 2. Run **Copy AI instructions** and paste it into any AI before asking for a card.
 3. Paste the block it returns into a note — the card appears where you were typing, no view switch needed.
-4. Click a card to open its source at the spot you clicked; click elsewhere to get the card back. Hover a card to reveal its toggle and click it to keep that block as source until you click again. In reading view the same toggle flips between source and card. No choice is ever written to disk.
-5. Press `Ctrl+F` and search for text inside a card: the block opens so the hit is visible, and closes again when you move on.
+4. Click a card to open its source at the spot you clicked; click elsewhere to get the card back. In reading view, hover a card to reveal its toggle and click it to keep that block as source until you click again. No choice is ever written to disk.
 
 The settings page has exactly four settings: enable rendering, default state for new
 blocks (a choice between *Rendered* and *Source*), show the toggle button, show error
 hints. Changes apply to notes that are already open, without a reload.
+
+## Tutorial: one block, from paste to card
+
+**1. Look at a finished one.** Run *Insert sample note* from the command palette. It creates
+a note with three rendered cards — a three-column comparison, a feature matrix, and a flow
+built from divs with inline SVG arrows. Open it in editing mode and click a card: it opens as source at the
+line you clicked. Click anywhere else and the card comes back. The file itself never
+changes.
+
+**2. Write your own.** In any note, type a fence named `h5-renderer` and put HTML in it:
+
+````markdown
+```h5-renderer
+<section class="status">
+  <style>
+    .status { display: grid; gap: 8px; color: var(--text-normal); }
+    .status h3 { margin: 0; font-size: 1.05em; }
+  </style>
+  <h3>Weekly status</h3>
+  <p>Three items shipped, one waiting on review.</p>
+</section>
+```
+````
+
+Move the cursor out of the block — press `Enter` after the closing fence — and the card
+appears in place.
+
+**3. If it stays a code block.** Check these in order:
+
+- the fence is exactly `h5-renderer`: lowercase, with the hyphen. `html` never renders, and that is deliberate;
+- the fence sits at the start of its line, indented less than four spaces, and is not inside a blockquote or a callout;
+- both fences are present — an unclosed block is not a block.
+
+**4. Edit it.** Click the card and you land inside the source at the line you clicked. Type.
+Click outside and the card returns. While the cursor is inside the block the card stays
+away, so nothing ever rebuilds under your cursor.
+
+**5. Ask an AI for one.** Run *Copy AI instructions*, paste it into any model, then add your
+request. Paste the answer into a note and it appears as a card. Rule 4 in that text is the
+one that decides whether two cards on the same page collide: one wrapper class, no
+selectors on `body`, `html`, `*` or `:root`.
+
+**6. Keep a block open while you read.** In reading view, hover a card and click its
+top-right toggle: that block stays source until you click again. The choice lives in the
+view, so reopening the note starts from *Rendered* again (or from *Source*, if that is what
+your settings say).
 
 ## Performance and degradation
 
@@ -155,13 +200,15 @@ plugin does not repair it, and cannot promise it.
 
 ## Roadmap
 
-- Editing-time (Live Preview) rendering: shipped in `1.1.0`, no longer a roadmap item.
+- Editing-time (Live Preview) rendering: shipped in `0.1.1`, no longer a roadmap item.
 - Mobile-specific adaptation: not scheduled; nothing in the design precludes it.
 
 ## Versioning
 
-Versions follow semantic versioning. `manifest.json` is the single source of truth, and a
-release fails unless the git tag, `manifest.version` and `package.json.version` agree.
+Versions follow semantic versioning. `manifest.json` is the single source of truth;
+`versions.json` maps each release to the `minAppVersion` it was built against, and
+`npm run verify-docs` fails unless `manifest.version`, `package.json.version` and the
+`versions.json` entry agree (the git tag is checked by the release itself).
 
 Breaking changes are limited to two kinds, and each ships with migration steps in the
 generated release notes: renaming the recognized fence, and changing or removing a

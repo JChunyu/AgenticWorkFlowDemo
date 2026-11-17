@@ -41,6 +41,52 @@
   display: none;
 }
 
+/* ---------------------------------------------------------- editor block frame */
+
+/*
+ * The card sits where the block's lines were. It must not add any appearance of its
+ * own — no border, background, shadow, or padding — and must not inherit the
+ * editor's line height (AD-15 / FR-46). Content styling stays inside the shadow root.
+ */
+.h5r-editor-card {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  /* Anchored to the reading view's line height, not the editor's: same text must
+   * measure the same in both views, and `normal` would silently diverge. */
+  line-height: var(--line-height-normal, 1.5);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  /* The card's only interaction is a click back to source; say so. */
+  cursor: pointer;
+}
+
+/*
+ * Stand-in for a block that could not render: the block's own fence text, kept at
+ * zero chrome so it sits where the card would have been.
+ */
+.h5r-editor-source {
+  display: block;
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  font-family: var(--font-monospace);
+  line-height: var(--line-height-normal, 1.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/*
+ * An empty block renders no content at all; without a floor it becomes a 0-height
+ * box the user can neither see nor click back into.
+ */
+.h5r-editor-card--empty {
+  min-height: 1.5em;
+}
+
 /* ------------------------------------------------------------------- toggle */
 
 .h5r-block > .h5r-toggle {
