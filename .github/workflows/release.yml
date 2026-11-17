@@ -4,9 +4,12 @@ on:
   push:
     tags:
       - '[0-9]*'
+  workflow_dispatch:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -57,6 +60,16 @@ jobs:
           test -f main.js
           test -f manifest.json
           test -f styles.css
+
+      # Provenance for the exact bytes shipped below, so anyone can run:
+      #   gh attestation verify main.js -R <owner>/<repo>
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
 
       - name: Publish release
         uses: softprops/action-gh-release@v2

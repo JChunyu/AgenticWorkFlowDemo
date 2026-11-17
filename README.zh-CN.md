@@ -1,4 +1,4 @@
-# h5-in-article-renderer
+# H5 Card Renderer
 
 把 AI 写的 HTML 粘进 Obsidian 笔记，就变成一张和笔记同主题、同宽度、同字号的卡——写的时候是，阅读视图里也是。英文版见
 [README.md](README.md)。

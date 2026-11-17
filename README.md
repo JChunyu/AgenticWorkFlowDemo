@@ -1,4 +1,4 @@
-# h5-in-article-renderer
+# H5 Card Renderer
 
 Paste an AI-written HTML block into an Obsidian note and see it as a card that looks like
 part of the note: same theme, same width, same typography — while you write, and in reading
