@@ -1,0 +1,10 @@
+{
+  "id": "h5-in-article-renderer",
+  "name": "h5-in-article-renderer",
+  "version": "0.1.0",
+  "minAppVersion": "1.15.0",
+  "description": "Renders h5-renderer code blocks as visual cards that inherit your note's theme, width, and typography.",
+  "author": "h5-in-article-renderer contributors",
+  "authorUrl": "https://github.com/h5-in-article-renderer/h5-in-article-renderer",
+  "isDesktopOnly": false
+}

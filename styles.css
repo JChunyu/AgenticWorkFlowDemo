@@ -1,0 +1,238 @@
+/*
+ * Shell-only styles. Rendering content styles are injected into each shadow root by
+ * the render stage, so nothing here may target rendered card content (AD-15).
+ * No literal colour values: every surface resolves through an Obsidian theme variable.
+ */
+
+:root {
+  --h5r-surface-raised: var(--background-secondary);
+  --h5r-text-secondary: var(--text-muted);
+  --h5r-hairline: var(--background-modifier-border);
+  --h5r-accent: var(--text-accent);
+  --h5r-warning: var(--color-orange);
+  --h5r-danger: var(--color-red);
+}
+
+/* ---------------------------------------------------------------- block frame */
+
+.h5r-block {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.h5r-block > .h5r-rendered-host {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.h5r-block--rendered > .h5r-source {
+  display: none;
+}
+
+.h5r-block--source > .h5r-rendered-host,
+.h5r-block--empty > .h5r-rendered-host,
+.h5r-block--failed > .h5r-rendered-host,
+.h5r-block--degraded > .h5r-rendered-host {
+  display: none;
+}
+
+/* ------------------------------------------------------------------- toggle */
+
+.h5r-block > .h5r-toggle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  margin: 0;
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  line-height: 1;
+  letter-spacing: normal;
+  color: var(--h5r-text-secondary);
+  background-color: var(--h5r-surface-raised);
+  border: 1px solid var(--h5r-hairline);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px var(--background-modifier-box-shadow);
+  opacity: 0.4;
+  cursor: pointer;
+  transition: none;
+}
+
+.h5r-block:hover > .h5r-toggle,
+.h5r-block > .h5r-toggle:hover,
+.h5r-block > .h5r-toggle:focus-visible {
+  opacity: 1;
+}
+
+.h5r-block > .h5r-toggle:focus-visible {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: 1px;
+}
+
+/* ------------------------------------------------------------------- notice */
+
+.h5r-block > .h5r-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  min-height: 24px;
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  color: var(--h5r-text-secondary);
+  background-color: var(--h5r-surface-raised);
+  border: 1px solid var(--h5r-hairline);
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.h5r-notice--info {
+  border-left: 1px solid var(--h5r-hairline);
+}
+
+.h5r-notice--warning {
+  border-left: 2px solid var(--h5r-warning);
+}
+
+.h5r-notice--danger {
+  border-left: 2px solid var(--h5r-danger);
+}
+
+.h5r-notice__text {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.h5r-block > .h5r-notice:focus-visible {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: 1px;
+}
+
+.h5r-notice__action,
+.h5r-onboarding__action,
+.h5r-onboarding__dismiss {
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--h5r-accent);
+  background: none;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.h5r-onboarding__dismiss {
+  color: var(--h5r-text-secondary);
+}
+
+.h5r-notice__action:focus-visible,
+.h5r-onboarding__action:focus-visible,
+.h5r-onboarding__dismiss:focus-visible {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: 1px;
+}
+
+/* --------------------------------------------------------------- onboarding */
+
+.h5r-onboarding {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+  background-color: var(--h5r-surface-raised);
+  border: 1px solid var(--h5r-hairline);
+  border-radius: 6px;
+}
+
+.h5r-onboarding__text {
+  flex: 1 1 auto;
+}
+
+/* ------------------------------------------------------------ inline fallback */
+
+.h5r-copy-fallback {
+  position: relative;
+  margin: 8px 0;
+  padding: 12px;
+  background-color: var(--h5r-surface-raised);
+  border: 1px solid var(--h5r-hairline);
+  border-radius: 6px;
+}
+
+.h5r-copy-fallback__hint {
+  margin: 0 0 8px;
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  color: var(--h5r-text-secondary);
+}
+
+.h5r-copy-fallback__area {
+  width: 100%;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+  background-color: var(--background-primary);
+  border: 1px solid var(--h5r-hairline);
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.h5r-copy-fallback > .h5r-onboarding__dismiss {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+/* ------------------------------------------------------------------ settings */
+
+.h5r-settings-intro {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+}
+
+.h5r-settings-intro a {
+  color: var(--text-accent);
+}
+
+/* --------------------------------------------------------------- print / pdf */
+
+@media print {
+  .h5r-toggle,
+  .h5r-notice,
+  .h5r-onboarding,
+  .h5r-copy-fallback {
+    display: none !important;
+  }
+
+  /* Export always renders: a block the reader flipped to source still prints as a card. */
+  .h5r-block--source > .h5r-source {
+    display: none !important;
+  }
+
+  .h5r-block--source > .h5r-rendered-host,
+  .h5r-block--rendered > .h5r-rendered-host {
+    display: block !important;
+  }
+
+  /* A block shown as source without a live host (a failed card) keeps its source. */
+  .h5r-block--source:not(:has(.h5r-rendered-host)) > .h5r-source {
+    display: block !important;
+  }
+}

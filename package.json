@@ -1,0 +1,27 @@
+{
+  "name": "h5-in-article-renderer",
+  "version": "0.1.0",
+  "description": "Obsidian plugin that renders h5-renderer code blocks as visual cards inheriting the note theme.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "sync-docs": "node scripts/sync-docs.mjs",
+    "verify-docs": "node scripts/verify-docs.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.12.0",
+    "esbuild": "0.28.2",
+    "happy-dom": "21.0.4",
+    "obsidian": "1.14.4",
+    "typescript": "5.7.3",
+    "vitest": "5.1.0"
+  }
+}
