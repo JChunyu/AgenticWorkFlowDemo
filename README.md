@@ -4,6 +4,13 @@ Paste an AI-written HTML block into an Obsidian note and see it as a card that l
 part of the note: same theme, same width, same typography — while you write, and in reading
 view. Chinese version: [README.zh-CN.md](README.zh-CN.md).
 
+![A lamp switch card: switch up, lamp off; switch down, lamp on](docs/screenshots/lamp-dark.png)
+
+That card is the first block of [`examples/lamp-switch.md`](examples/lamp-switch.md). The same
+card under the [light theme](docs/screenshots/lamp-light.png) needs no edit at all, and the
+[flowchart](docs/screenshots/flow-dark.png) and [kanban](docs/screenshots/board-dark.png) are
+plain static HTML inside the same fence.
+
 **What this plugin never does:**
 
 1. **It does not execute scripts.** `<script>`, `on*` handlers and `javascript:` URLs are removed before anything is displayed.
@@ -54,6 +61,11 @@ here is designed to break there.
 2. Run **Copy AI instructions** and paste it into any AI before asking for a card.
 3. Paste the block it returns into a note — the card appears where you were typing, no view switch needed.
 4. Click a card to open its source at the spot you clicked; click elsewhere to get the card back. In reading view, hover a card to reveal its toggle and click it to keep that block as source until you click again. No choice is ever written to disk.
+
+[`examples/`](examples/) holds four notes you can copy outright: a
+[lamp switch](examples/lamp-switch.md), a [flowchart](examples/flowchart.md), a
+[timeline](examples/timeline.md), and a [metrics and kanban board](examples/kpi-board.md).
+Each one uses a single top-level container class and theme variables only, so it fits any theme.
 
 The settings page has exactly four settings: enable rendering, default state for new
 blocks (a choice between *Rendered* and *Source*), show the toggle button, show error

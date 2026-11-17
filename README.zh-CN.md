@@ -3,6 +3,12 @@
 把 AI 写的 HTML 粘进 Obsidian 笔记，就变成一张和笔记同主题、同宽度、同字号的卡——写的时候是，阅读视图里也是。英文版见
 [README.md](README.md)。
 
+![台灯开关示例卡：左边开关抬起、灯不亮，右边开关落下、灯亮](docs/screenshots/lamp-dark.png)
+
+上面这张卡就是 [`examples/lamp-switch.md`](examples/lamp-switch.md) 里的第一个块。同一张卡在
+[浅色主题](docs/screenshots/lamp-light.png) 下不用改一个字自动换色；[流程图](docs/screenshots/flow-dark.png) 与
+[看板](docs/screenshots/board-dark.png) 同样是一个 `h5-renderer` 里的静态 HTML。
+
 **这个插件不做的事：**
 
 1. **不执行脚本。** `<script>`、`on*` 事件属性和 `javascript:` 链接在显示之前就被剥离。
@@ -50,6 +56,10 @@
 2. 命令面板执行 **复制给 AI 的要求**，把它粘给任何 AI。
 3. 把 AI 返回的块粘进笔记——卡片当场就在你敲字的地方，不用切视图。
 4. 点卡片即展开源码并落到点击位置，点到别处卡片回来。阅读视图里把鼠标移到卡片上会显现切换按钮，点它可让这一块一直保持源码，再点一次复原。任何选择都不会写到磁盘上。
+
+[`examples/`](examples/) 里放着四篇可以直接抄的示例笔记：[台灯开关](examples/lamp-switch.md)、
+[流程图](examples/flowchart.md)、[时间线](examples/timeline.md)、[指标卡与看板](examples/kpi-board.md)。
+每篇都只有一个顶层容器类、只用主题变量，粘进任何主题都不会失配。
 
 设置页恰好四项：启用渲染、新块默认状态（在 *渲染结果* 与 *源码* 之间选择）、显示切换按钮、
 显示错误提示。改完立即作用于已经打开的笔记，不需要重载。
