@@ -50,7 +50,7 @@ Cards appear in print and in exported PDF too.
 ## Install
 
 - **BRAT**: add this repository as a beta plugin, enable it, then enable *H5 Card Renderer* in Community plugins.
-- **Manual**: create `<vault>/.obsidian/plugins/h5-in-article-renderer/` and copy `main.js`, `manifest.json`, `styles.css` into it, then reload Obsidian and enable the plugin.
+- **Manual**: create `<vault>/.obsidian/plugins/html-card-renderer/` and copy `main.js`, `manifest.json`, `styles.css` into it, then reload Obsidian and enable the plugin.
 
 Requires Obsidian `1.12.7` or newer. The manifest marks this plugin as desktop-only until it
 has been tested on mobile; nothing here is designed to break there, so that flag is expected
@@ -135,7 +135,7 @@ actually changed. Blocks you scroll past release their output and rebuild when y
 There is no telemetry, no analytics and no network access. The plugin stores exactly two
 kinds of data, both inside your vault:
 
-- `.obsidian/plugins/h5-in-article-renderer/data.json` — your four settings plus three
+- `.obsidian/plugins/html-card-renderer/data.json` — your four settings plus three
   local flags (onboarding seen, sample note offered, sample note declined).
 - Nothing else. Block state (card / source / kept as source) lives only in memory for the
   lifetime of the open view, and the editor and reading view keep separate state — opening a

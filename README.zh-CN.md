@@ -46,7 +46,7 @@
 ## 安装
 
 - **BRAT**：把本仓库加为 beta 插件，启用，然后在社区插件里打开 *H5 Card Renderer*。
-- **手动**：新建 `<vault>/.obsidian/plugins/h5-in-article-renderer/`，把 `main.js`、`manifest.json`、`styles.css` 放进去，重载 Obsidian 后启用。
+- **手动**：新建 `<vault>/.obsidian/plugins/html-card-renderer/`，把 `main.js`、`manifest.json`、`styles.css` 放进去，重载 Obsidian 后启用。
 
 需要 Obsidian `1.12.7` 或更新版本。在移动端实测通过之前，manifest 把本插件标记为仅桌面端；这里没有任何设计会让它必然不可用，该标记预期会改回去。
 
@@ -117,7 +117,7 @@
 
 没有 telemetry、没有统计、不访问网络。插件只存两类数据，且都在你的 vault 内：
 
-- `.obsidian/plugins/h5-in-article-renderer/data.json` —— 四项设置，加三个本地标记（引导是否已显示、示例是否已询问、示例是否被拒绝）。
+- `.obsidian/plugins/html-card-renderer/data.json` —— 四项设置，加三个本地标记（引导是否已显示、示例是否已询问、示例是否被拒绝）。
 - 别无其它。块状态（卡片/源码/保持源码）只在当前视图的内存里，编辑态与阅读视图各存一份——一边展开不会影响另一边。
 
 删掉插件目录即清空以上全部。
