@@ -10,13 +10,26 @@ const LIVE_PREVIEW_SELECTOR = '.cm-editor';
 /** Wrapper class used by `view`; blocks already owned are never re-collected. */
 export const BLOCK_WRAPPER_CLASS = 'h5r-block';
 
+/**
+ * Obsidian's own markup is `<pre><code class="language-x">`, but other plugins may
+ * re-parent or re-tag the block, so the code element is accepted wherever it lives as
+ * long as the language class is exact. `language-h5-renderer-x` is rejected: only the
+ * exact class name is the sentinel.
+ */
 function isSentinelCode(codeEl: Element): boolean {
   if (!(codeEl instanceof HTMLElement)) return false;
   if (codeEl.tagName !== 'CODE') return false;
-  if (!codeEl.classList.contains(SENTINEL_CLASS)) return false;
-  if (!(codeEl.parentElement instanceof HTMLElement)) return false;
-  if (codeEl.parentElement.tagName !== 'PRE') return false;
-  return true;
+  return codeEl.classList.contains(SENTINEL_CLASS);
+}
+
+/** The `<pre>` that should stay visible as the source, whatever wraps it. */
+function sourceElementFor(codeEl: HTMLElement): HTMLElement {
+  const parent = codeEl.parentElement;
+  if (parent && parent.tagName === 'PRE') {
+    return parent;
+  }
+  const ancestor = codeEl.closest('pre');
+  return ancestor instanceof HTMLElement ? ancestor : codeEl;
 }
 
 function resolveScope(el: HTMLElement): ParentNode {
@@ -56,15 +69,15 @@ export function collect(el: HTMLElement): BlockDescriptor[] {
     if (!el.contains(codeEl)) {
       continue;
     }
-    const preEl = codeEl.parentElement;
-    if (!preEl) {
+    /* Already owned by a previous pass: never double-wrap. */
+    if (codeEl.closest(`.${BLOCK_WRAPPER_CLASS}`)) {
       continue;
     }
     descriptors.push({
       id: `${hash}:${occurrenceIndex}`,
       sourceText,
       codeEl,
-      preEl,
+      preEl: sourceElementFor(codeEl),
     });
   }
 

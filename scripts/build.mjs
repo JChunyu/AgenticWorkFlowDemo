@@ -114,7 +114,73 @@ const options = {
   loader: { '.md': 'text' },
   logLevel: 'info',
   sourcemap: WATCH ? 'inline' : false,
+  /*
+   * Obsidian instantiates whatever `module.exports` is. esbuild's CJS output would
+   * hand over `{ default: Plugin }`, which older Obsidian builds do not unwrap — the
+   * plugin then installs silently and never appears. Export the class itself and keep
+   * `default` pointing at it, so either loader shape works.
+   */
+  footer: {
+    js: 'module.exports = module.exports.default;\nmodule.exports.default = module.exports;',
+  },
 };
+
+/** Obsidian's API surface, stubbed so the bundle can be loaded outside Obsidian. */
+const OBSIDIAN_STUB = `const stub = new Proxy(function () {}, {
+  get: (_target, key) => (key === '__esModule' ? false : stub),
+  construct: () => stub,
+  apply: () => stub,
+});
+module.exports = stub;`;
+
+async function assertExportShape() {
+  const { createRequire } = await import('node:module');
+  const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+
+  const sandbox = await mkdtemp(path.join(tmpdir(), 'h5r-load-'));
+  const stubDir = path.join(sandbox, 'node_modules', 'obsidian');
+  /* `.cjs` keeps Node from re-reading this package's `"type": "module"` during the probe. */
+  const bundleCopy = path.join(sandbox, 'plugin.cjs');
+  try {
+    const fsPromises = await import('node:fs/promises');
+    await fsPromises.mkdir(stubDir, { recursive: true });
+    await writeFile(path.join(stubDir, 'index.js'), OBSIDIAN_STUB, 'utf8');
+    await fsPromises.copyFile(options.outfile, bundleCopy);
+
+    const probe = path.join(sandbox, 'probe.cjs');
+    await writeFile(
+      probe,
+      `const loaded = require(${JSON.stringify(bundleCopy)});
+if (typeof loaded !== 'function') {
+  console.error('[build] module.exports is ' + typeof loaded + ', Obsidian cannot instantiate it');
+  process.exit(1);
+}
+if (loaded.default !== loaded) {
+  console.error('[build] module.exports.default does not point back at the plugin class');
+  process.exit(1);
+}
+console.log('[build] export shape ok: module.exports is a plugin class');
+`,
+      'utf8',
+    );
+
+    const { execFile } = await import('node:child_process');
+    await new Promise((resolve, reject) => {
+      execFile(process.execPath, [probe], { env: { ...process.env, NODE_PATH: path.join(sandbox, 'node_modules') } }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(stderr.trim() || error.message);
+          reject(new Error('bundle cannot be loaded the way Obsidian loads it'));
+          return;
+        }
+        console.info(stdout.trim());
+        resolve(undefined);
+      });
+    });
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
+}
 
 await assertLayerBoundaries();
 
@@ -124,5 +190,6 @@ if (WATCH) {
   console.info('[build] watching…');
 } else {
   await esbuild.build(options);
+  await assertExportShape();
   console.info('[build] main.js written');
 }

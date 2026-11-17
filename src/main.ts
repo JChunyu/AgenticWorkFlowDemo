@@ -3,7 +3,7 @@ import { copyConstraintCard, insertSampleNote, registerCommands, type CommandDep
 import { OnboardingController } from './adapters/onboarding';
 import { H5SettingsTab, SettingsStore } from './adapters/settings';
 import { detectLang, type Lang } from './core/i18n';
-import { setDebugLogging } from './core/log';
+import { log, setDebugLogging } from './core/log';
 import { ViewRegistry } from './view';
 
 /**
@@ -71,6 +71,15 @@ export default class H5RendererPlugin extends Plugin {
         this.registry.refreshAll();
       }),
     );
+
+    /*
+     * A post-processor only decorates content rendered from now on. Notes that were
+     * already open when the plugin loaded would keep showing plain code blocks until
+     * the reader navigated away and back, so re-render them once the layout is up.
+     */
+    this.app.workspace.onLayoutReady(() => {
+      this.refreshOpenNotes();
+    });
   }
 
   onunload(): void {
@@ -78,18 +87,26 @@ export default class H5RendererPlugin extends Plugin {
   }
 
   private handleElement(element: HTMLElement): void {
-    if (!this.store.snapshot.enabled) {
-      return;
+    try {
+      if (this.store.snapshot.enabled) {
+        this.registry.process(element);
+        this.onboarding.maybeRender(element);
+      }
+    } catch (error) {
+      /* One malformed block must never take the rest of the note down with it. */
+      log.error('post-processor failed', error);
     }
-    this.registry.process(element);
-    this.onboarding.maybeRender(element);
   }
 
   private applySettings(): void {
     if (!this.store.snapshot.enabled) {
       this.registry.teardownAll(true);
     }
-    /* Settings apply to notes that are already open, without a reload. */
+    this.refreshOpenNotes();
+  }
+
+  /** Re-renders every open note so post-processors run again on its blocks. */
+  private refreshOpenNotes(): void {
     for (const leaf of this.app.workspace.getLeavesOfType('markdown')) {
       if (leaf.view instanceof MarkdownView) {
         leaf.view.previewMode?.rerender(true);

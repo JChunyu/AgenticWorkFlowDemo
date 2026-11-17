@@ -65,6 +65,35 @@ describe('detect', () => {
     expect(collect(view)).toHaveLength(0);
   });
 
+  it('finds the block even if another plugin re-parents the code element', () => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'some-other-plugin';
+    const code = document.createElement('code');
+    code.className = 'language-h5-renderer';
+    code.textContent = '<p>adopted</p>';
+    wrapper.appendChild(code);
+    const view = noteView(wrapper);
+
+    const blocks = collect(view);
+
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].sourceText).toBe('<p>adopted</p>');
+    expect(blocks[0].preEl).toBe(code);
+  });
+
+  it('never re-collects a block it already wrapped', () => {
+    const view = noteView(codeBlock('<p>x</p>'));
+    const first = collect(view);
+    expect(first).toHaveLength(1);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'h5r-block';
+    first[0].preEl.replaceWith(wrapper);
+    wrapper.appendChild(first[0].preEl);
+
+    expect(collect(view)).toHaveLength(0);
+  });
+
   it('gives identical sources distinct occurrence indices', () => {
     const view = noteView(codeBlock('<p>same</p>'), codeBlock('<p>same</p>'));
 
