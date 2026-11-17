@@ -49,11 +49,12 @@ Cards appear in print and in exported PDF too.
 
 ## Install
 
-- **BRAT**: add this repository as a beta plugin, enable it, then enable *h5-in-article-renderer* in Community plugins.
+- **BRAT**: add this repository as a beta plugin, enable it, then enable *H5 Card Renderer* in Community plugins.
 - **Manual**: create `<vault>/.obsidian/plugins/h5-in-article-renderer/` and copy `main.js`, `manifest.json`, `styles.css` into it, then reload Obsidian and enable the plugin.
 
-Requires Obsidian `1.12.7` or newer, on desktop. Mobile is not tested in v1, but nothing
-here is designed to break there.
+Requires Obsidian `1.12.7` or newer. The manifest marks this plugin as desktop-only until it
+has been tested on mobile; nothing here is designed to break there, so that flag is expected
+to flip back.
 
 ## Use
 

@@ -32,6 +32,13 @@ export function render(fragment: SanitizedFragment): ShadowHost {
 
   const root = document.createElement('div');
   root.className = ROOT_CLASS;
+  /*
+   * The one place a string is turned back into nodes. `fragment.contentHtml` can only
+   * come from `scrub`, which is what sets the `sanitized: true` marker: scripts, `on*`
+   * handlers, `javascript:` URLs and every fetching attribute are already gone, and the
+   * target is a detached shadow root — not the note's document. Assigning here instead
+   * of string-concatenating into the note keeps user HTML out of the live DOM.
+   */
   root.innerHTML = fragment.contentHtml;
 
   shadow.append(style, root);

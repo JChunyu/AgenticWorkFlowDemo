@@ -45,10 +45,10 @@
 
 ## 安装
 
-- **BRAT**：把本仓库加为 beta 插件，启用，然后在社区插件里打开 *h5-in-article-renderer*。
+- **BRAT**：把本仓库加为 beta 插件，启用，然后在社区插件里打开 *H5 Card Renderer*。
 - **手动**：新建 `<vault>/.obsidian/plugins/h5-in-article-renderer/`，把 `main.js`、`manifest.json`、`styles.css` 放进去，重载 Obsidian 后启用。
 
-需要 Obsidian `1.12.7` 或更新版本，桌面端。v1 不测试移动端，但没有任何设计会让它必然不可用。
+需要 Obsidian `1.12.7` 或更新版本。在移动端实测通过之前，manifest 把本插件标记为仅桌面端；这里没有任何设计会让它必然不可用，该标记预期会改回去。
 
 ## 使用
 

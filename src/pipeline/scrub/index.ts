@@ -133,6 +133,13 @@ export function scrub(sourceText: string): Result<SanitizedFragment> {
 
   const template = document.createElement('template');
   try {
+    /*
+     * `innerHTML` is deliberate and contained here. A <template> parses into an inert
+     * document: nothing renders, no subresource loads, no handler fires, so the string
+     * is never "live". This is also the only way to get the block into DOM nodes at all.
+     * Nothing escapes this function before stripForbiddenElements / extractStyles /
+     * scrubAttributes have run, and `render` only accepts the resulting fragment.
+     */
     template.innerHTML = sourceText;
   } catch (error) {
     return fail(ErrorCode.ParseFailed, error instanceof Error ? error.message : 'parse-error');
