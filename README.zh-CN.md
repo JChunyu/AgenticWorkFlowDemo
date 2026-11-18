@@ -189,12 +189,40 @@ focus 色——编辑态用的是同一个控件，到达方式也一样。提�
 - 编辑时（Live Preview）渲染：已在 `0.1.1` 交付，不再是 roadmap 项。
 - 移动端专项适配：未排期；但当前设计不会让移动端必然不可用。
 
+## 开发
+
+```bash
+npm ci
+npm run lint       # 社区审核所用的同一套规则（eslint-plugin-obsidianmd）
+npm run typecheck
+npm test
+npm run build      # 产出 main.js
+```
+
+发布前最重要的是 `npm run lint`：它跑的就是社区插件审核使用的 `obsidianmd/*` 规则，外加
+DOM 安全与类型感知规则，跑干净就说明源码不会在这些项上被审核打回。
+
 ## 版本策略
 
 遵循语义化版本，`manifest.json` 是唯一版本源；`versions.json` 记录每个版本对应的 `minAppVersion`。`npm run verify-docs` 会在 `manifest.version`、`package.json.version` 与 `versions.json` 条目不一致时失败（git tag 由发布流程自己校验）。
 
 破坏性变更只限两类，且都在自动生成的 release notes 里给出迁移步骤：更换识别的 fence 名、增删或修改设置项。
 同一大版本内，公开接口不会出现其它破坏性变更。
+
+## 校验发布产物
+
+每个版本都由 `.github/workflows/release.yml` 构建并发布，它会给随版发出的三个文件生成来源证明，
+所以你不必只相信 tag：
+
+```bash
+gh release download <version> --repo JChunyu/h5-in-article-renderer
+gh attestation verify main.js --repo JChunyu/h5-in-article-renderer
+gh attestation verify manifest.json --repo JChunyu/h5-in-article-renderer
+gh attestation verify styles.css --repo JChunyu/h5-in-article-renderer
+```
+
+工作流在发布后会对自己刚发布的产物执行同样的校验：来源证明缺失或不匹配会让该次运行失败，
+并将该版本标记为未验证。由于产物此时已经公开，安装前请先确认对应工作流运行成功。
 
 ## 发布自己的构建之前
 

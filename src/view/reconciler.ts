@@ -56,6 +56,16 @@ export class BlockController {
     return this.mounted;
   }
 
+  /**
+   * True once the block's wrapper has been wiped out from under us — Obsidian empties
+   * a section before re-rendering it. A merely detached wrapper (the reading view's
+   * virtual scrolling detaches whole sections on scroll) is NOT orphaned: the card
+   * must survive that and come back with its section.
+   */
+  get isOrphaned(): boolean {
+    return this.wrapper !== null && this.wrapper.parentElement === null;
+  }
+
   /** Wraps the native block and paints the first frame. Never runs while disabled. */
   mount(): void {
     if (!this.deps.settings().enabled) {
@@ -69,9 +79,8 @@ export class BlockController {
     /* Re-processing an already wrapped block must not create a second host. */
     const existingWrapper = parent.classList.contains(BLOCK_WRAPPER_CLASS)
       ? parent
-      : document.createElement('div');
+      : createDiv({ cls: BLOCK_WRAPPER_CLASS });
     if (existingWrapper !== parent) {
-      existingWrapper.className = BLOCK_WRAPPER_CLASS;
       parent.insertBefore(existingWrapper, pre);
       existingWrapper.appendChild(pre);
     }
@@ -243,7 +252,13 @@ export class BlockController {
     if (!this.wrapper) {
       return;
     }
-    this.wrapper.className = `${BLOCK_WRAPPER_CLASS} ${BLOCK_WRAPPER_CLASS}--${state}`;
+    /*
+     * `--hostless` marks a block with no card to print: a source view of a block that
+     * could not render. The print rules need that distinction in CSS, and asking the
+     * selector engine with `:has()` would invalidate far too much to answer it.
+     */
+    const hostless = this.shadowHost === null ? ` ${BLOCK_WRAPPER_CLASS}--hostless` : '';
+    this.wrapper.className = `${BLOCK_WRAPPER_CLASS} ${BLOCK_WRAPPER_CLASS}--${state}${hostless}`;
   }
 
   private paintToggle(next: 'source' | 'rendered'): void {

@@ -23,6 +23,31 @@ export function shadowParagraph(host: HTMLElement): Element | null {
   return host.shadowRoot?.querySelector('p') ?? null;
 }
 
+/**
+ * The reading view's shape at post-processor time: the preview root is in the
+ * document, the section element is not. Obsidian attaches sections only after the
+ * pass is done, and virtual scrolling detaches them again on scroll.
+ */
+export function readingPass(...blocks: HTMLPreElement[]): { root: HTMLElement; section: HTMLElement } {
+  const root = document.createElement('div');
+  root.className = 'markdown-preview-view markdown-rendered';
+  const sizer = document.createElement('div');
+  sizer.className = 'markdown-preview-sizer markdown-preview-section';
+  root.appendChild(sizer);
+  document.body.appendChild(root);
+
+  const section = document.createElement('div');
+  for (const block of blocks) {
+    section.appendChild(block);
+  }
+  return { root, section };
+}
+
+/** What Obsidian does once the pass is over. */
+export function attachSection(root: HTMLElement, section: HTMLElement): void {
+  root.querySelector('.markdown-preview-sizer')?.appendChild(section);
+}
+
 export function sequenceNow(values: number[]): () => number {
   let index = 0;
   return () => {

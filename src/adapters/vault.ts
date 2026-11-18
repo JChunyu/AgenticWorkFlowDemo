@@ -33,7 +33,7 @@ export class VaultWriter {
 export function inlineHost(app: App): HTMLElement {
   const view = app.workspace.getActiveViewOfType(MarkdownView);
   if (!view) {
-    return document.body;
+    return activeDocument.body;
   }
   const preview = view.contentEl.querySelector<HTMLElement>('.markdown-preview-view');
   return preview ?? view.contentEl;

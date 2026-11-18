@@ -260,25 +260,35 @@
 /* --------------------------------------------------------------- print / pdf */
 
 @media print {
-  .h5r-toggle,
-  .h5r-notice,
+  /* The chrome is screen furniture: a printed card is just the card. Every selector
+   * matches its control's real mount point — the toggle and notice are children of
+   * the block wrapper, while the onboarding prompts and the copy fallback prepend to
+   * the preview root or the inline host and never sit inside the wrapper. The block
+   * is last in the file, so these rules win over their screen counterparts. */
+  .h5r-block > .h5r-toggle,
+  .h5r-block > .h5r-notice {
+    display: none;
+  }
+
   .h5r-onboarding,
   .h5r-copy-fallback {
-    display: none !important;
+    display: none;
   }
 
   /* Export always renders: a block the reader flipped to source still prints as a card. */
-  .h5r-block--source > .h5r-source {
-    display: none !important;
+  .h5r-block.h5r-block--source > .h5r-source {
+    display: none;
   }
 
-  .h5r-block--source > .h5r-rendered-host,
-  .h5r-block--rendered > .h5r-rendered-host {
-    display: block !important;
+  .h5r-block.h5r-block--source > .h5r-rendered-host,
+  .h5r-block.h5r-block--rendered > .h5r-rendered-host {
+    display: block;
   }
 
-  /* A block shown as source without a live host (a failed card) keeps its source. */
-  .h5r-block--source:not(:has(.h5r-rendered-host)) > .h5r-source {
-    display: block !important;
+  /* A block shown as source without a live host (a failed card) keeps its source.
+   * `--hostless` is set by the reconciler, which is cheaper than a selector-engine
+   * lookup over the whole subtree. */
+  .h5r-block.h5r-block--source.h5r-block--hostless > .h5r-source {
+    display: block;
   }
 }

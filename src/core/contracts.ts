@@ -47,4 +47,6 @@ export interface SanitizedFragment {
 export interface ShadowHost {
   readonly element: HTMLElement;
   readonly shadow: ShadowRoot;
+  /** The stylesheet text the shadow root adopted, for callers that need to inspect it. */
+  readonly css: string;
 }

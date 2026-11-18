@@ -19,17 +19,11 @@ export function createTranslator(lang: Lang): (key: MessageKey) => string {
 }
 
 /**
- * Obsidian stores the interface language in `localStorage.language`.
+ * `locale` is the ISO code Obsidian reports for its interface language (`getLanguage()`).
  * Anything that is not Chinese falls back to English.
  */
-export function detectLang(storage?: Storage | null): Lang {
-  let raw: string | null | undefined;
-  if (storage !== undefined) {
-    raw = storage === null ? null : storage.getItem('language');
-  } else if (typeof window !== 'undefined' && window.localStorage) {
-    raw = window.localStorage.getItem('language');
-  }
-  if (typeof raw === 'string' && raw.toLowerCase().startsWith('zh')) {
+export function detectLang(locale?: string | null): Lang {
+  if (typeof locale === 'string' && locale.toLowerCase().startsWith('zh')) {
     return 'zh';
   }
   return 'en';

@@ -22,17 +22,39 @@ function rotr(value: number, shift: number): number {
   return ((value >>> shift) | (value << (32 - shift))) >>> 0;
 }
 
+/** UTF-8 bytes, written by hand so no deprecated global is needed. */
+function encodeUtf8Fallback(input: string): Uint8Array {
+  const bytes: number[] = [];
+  /* `for…of` walks code points, so a surrogate pair stays one character. */
+  for (const character of input) {
+    let code = character.codePointAt(0) ?? 0;
+    /* A lone surrogate has no UTF-8 form; TextEncoder emits U+FFFD, so do we. */
+    if (code >= 0xd800 && code <= 0xdfff) {
+      code = 0xfffd;
+    }
+    if (code < 0x80) {
+      bytes.push(code);
+    } else if (code < 0x800) {
+      bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
+    } else if (code < 0x10000) {
+      bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+    } else {
+      bytes.push(
+        0xf0 | (code >> 18),
+        0x80 | ((code >> 12) & 0x3f),
+        0x80 | ((code >> 6) & 0x3f),
+        0x80 | (code & 0x3f),
+      );
+    }
+  }
+  return new Uint8Array(bytes);
+}
+
 function encodeUtf8(input: string): Uint8Array {
   if (typeof TextEncoder !== 'undefined') {
     return new TextEncoder().encode(input);
   }
-  /* c8 ignore next 12 -- fallback for environments without TextEncoder */
-  const escaped = unescape(encodeURIComponent(input));
-  const bytes = new Uint8Array(escaped.length);
-  for (let i = 0; i < escaped.length; i += 1) {
-    bytes[i] = escaped.charCodeAt(i);
-  }
-  return bytes;
+  return encodeUtf8Fallback(input);
 }
 
 export function sha256Hex(input: string): string {

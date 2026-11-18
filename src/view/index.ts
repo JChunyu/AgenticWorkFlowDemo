@@ -1,10 +1,9 @@
 import type { Lang } from '../core/i18n';
 import type { Settings } from '../core/settings';
+import { VIEW_ROOT_SELECTOR } from '../core/view-root';
 import { collect } from '../pipeline/detect';
 import { BlockController, type ReconcilerDeps } from './reconciler';
 import { ViewStore } from './store';
-
-const VIEW_ROOT_SELECTOR = '.markdown-preview-view, .markdown-reading-view, .markdown-rendered';
 
 export interface ViewDeps {
   settings(): Settings;
@@ -20,9 +19,12 @@ export class PreviewView {
   readonly store: ViewStore;
   private readonly controllers = new Map<HTMLElement, BlockController>();
   private readonly deps: ViewDeps;
+  /** The stable root the blocks live under — the note's preview, the embed, … */
+  private readonly root: HTMLElement;
 
-  constructor(viewId: string, deps: ViewDeps) {
+  constructor(viewId: string, root: HTMLElement, deps: ViewDeps) {
     this.store = new ViewStore(viewId);
+    this.root = root;
     this.deps = deps;
   }
 
@@ -30,14 +32,18 @@ export class PreviewView {
     return this.controllers.size;
   }
 
-  /** True when every block this view owned has left the document. */
+  /** The registry keys its root map by this element. */
+  get rootEl(): HTMLElement {
+    return this.root;
+  }
+
+  /**
+   * True once the root has left the document — the leaf is closed. A block's own
+   * detachment is NOT a signal: the reading view's virtual scrolling detaches whole
+   * sections on scroll and re-attaches them later, card included.
+   */
   get isDetached(): boolean {
-    for (const preEl of this.controllers.keys()) {
-      if (preEl.isConnected) {
-        return false;
-      }
-    }
-    return this.controllers.size > 0;
+    return !this.root.isConnected;
   }
 
   process(el: HTMLElement): void {
@@ -45,7 +51,7 @@ export class PreviewView {
       return;
     }
 
-    this.sweepDetached();
+    this.sweepOrphaned();
     const descriptors = collect(el);
 
     for (const descriptor of descriptors) {
@@ -73,7 +79,7 @@ export class PreviewView {
       this.teardown(true);
       return;
     }
-    this.sweepDetached();
+    this.sweepOrphaned();
     for (const controller of this.controllers.values()) {
       controller.refresh();
     }
@@ -87,9 +93,10 @@ export class PreviewView {
     this.store.clear();
   }
 
-  private sweepDetached(): void {
+  /** Drops blocks whose wrapper Obsidian wiped out (a section being re-rendered). */
+  private sweepOrphaned(): void {
     for (const [preEl, controller] of Array.from(this.controllers)) {
-      if (!preEl.isConnected) {
+      if (controller.isOrphaned) {
         controller.destroy(false);
         this.controllers.delete(preEl);
       }
@@ -112,27 +119,37 @@ export class ViewRegistry {
   private readonly live: PreviewView[] = [];
   private sequence = 0;
   private readonly deps: ViewDeps;
+  private pruneScheduled = false;
 
   constructor(deps: ViewDeps) {
     this.deps = deps;
   }
 
-  resolve(el: HTMLElement): PreviewView {
-    this.pruneClosedViews();
-    const root = el.closest(VIEW_ROOT_SELECTOR) ?? el;
+  /**
+   * `containerEl` is the post-processor context's container: the reading view supplies
+   * the note's preview sizer, which is the one stable root for a pass whose section
+   * elements are still detached.
+   */
+  resolve(el: HTMLElement, containerEl?: HTMLElement): PreviewView {
+    this.schedulePrune();
+    const root =
+      containerEl?.closest<HTMLElement>(VIEW_ROOT_SELECTOR) ??
+      containerEl ??
+      el.closest<HTMLElement>(VIEW_ROOT_SELECTOR) ??
+      el;
     const existing = this.roots.get(root);
     if (existing) {
       return existing;
     }
     this.sequence += 1;
-    const view = new PreviewView(`view-${this.sequence}`, this.deps);
+    const view = new PreviewView(`view-${this.sequence}`, root, this.deps);
     this.roots.set(root, view);
     this.live.push(view);
     return view;
   }
 
-  process(el: HTMLElement): void {
-    this.resolve(el).process(el);
+  process(el: HTMLElement, containerEl?: HTMLElement): void {
+    this.resolve(el, containerEl).process(el);
   }
 
   refreshAll(): void {
@@ -153,12 +170,35 @@ export class ViewRegistry {
     return this.live;
   }
 
+  /**
+   * Deferred on purpose: the reading view calls the post-processor for every section
+   * of a pass before attaching any of them, so a synchronous prune would tear down the
+   * blocks created moments earlier in the same pass. By the time this runs, the pass
+   * has attached its sections and only genuinely closed leaves are left detached.
+   */
+  private schedulePrune(): void {
+    if (this.pruneScheduled) {
+      return;
+    }
+    this.pruneScheduled = true;
+    queueMicrotask(() => {
+      this.pruneScheduled = false;
+      this.pruneClosedViews();
+    });
+  }
+
   /** A closed leaf must not leave its controllers (or its store) reachable. */
   private pruneClosedViews(): void {
     for (let index = this.live.length - 1; index >= 0; index -= 1) {
       const view = this.live[index];
       if (view.isDetached) {
-        view.teardown(false);
+        /* Restores the source block: a mis-pruned but still-alive section keeps its
+         * content and can be decorated again on its next pass. The roots entry must
+         * go too, or a later pass on the same element would resolve to this dead
+         * view — no longer in `live`, it would miss refreshAll and the final
+         * teardown. */
+        this.roots.delete(view.rootEl);
+        view.teardown(true);
         this.live.splice(index, 1);
       }
     }

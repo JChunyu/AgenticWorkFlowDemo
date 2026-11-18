@@ -83,7 +83,7 @@ function reportMissing(reason: string): void {
 function loadModules(): Modules | null {
   if (modules) return modules;
   try {
-    const loader: NodeRequire | undefined = typeof require === 'function' ? require : undefined;
+    const loader: NodeJS.Require | undefined = typeof require === 'function' ? require : undefined;
     if (!loader) {
       reportMissing('no require');
       return null;
@@ -157,10 +157,8 @@ function cardElement(block: ScannedBlock): HTMLElement | null {
  * rather than the block's offsets — those can lag behind a widget kept alive by an
  * equal `eq`, and a wrong-but-valid range would show another block's text.
  */
-function sourceStandIn(view: CmView.EditorView, block: ScannedBlock): HTMLElement {
-  const standIn = view.dom.ownerDocument.createElement('pre');
-  standIn.className = 'h5r-editor-source';
-  standIn.textContent = block.sourceText;
+function sourceStandIn(block: ScannedBlock): HTMLElement {
+  const standIn = createEl('pre', { cls: 'h5r-editor-source', text: block.sourceText });
   markCard(standIn, block);
   return standIn;
 }
@@ -189,8 +187,8 @@ export function createEditorExtension(deps: EditorExtDeps): CmState.Extension {
       return other.block.id === this.block.id && other.block.sourceText === this.block.sourceText;
     }
 
-    toDOM(view: CmView.EditorView): HTMLElement {
-      return cardElement(this.block) ?? sourceStandIn(view, this.block);
+    toDOM(_view: CmView.EditorView): HTMLElement {
+      return cardElement(this.block) ?? sourceStandIn(this.block);
     }
 
     /**

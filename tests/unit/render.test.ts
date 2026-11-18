@@ -33,16 +33,17 @@ describe('render', () => {
 
     const lightStyles = host.element.querySelectorAll('style');
     expect(lightStyles).toHaveLength(0);
-    const shadowStyle = host.shadow.querySelector('style');
-    expect(shadowStyle?.textContent).toContain('.card{color:red}');
+    /* No `<style>` element anywhere: the shadow root adopts a constructed sheet. */
+    expect(host.shadow.querySelector('style')).toBeNull();
+    expect(host.shadow.adoptedStyleSheets).toHaveLength(1);
+    expect(host.css).toContain('.card{color:red}');
   });
 
   it('applies the migrated root styles to the host of the shadow root', () => {
     const host = render(fragment('<style>body{font-size:15px;background:red}</style><p>x</p>'));
 
-    const css = host.shadow.querySelector('style')?.textContent ?? '';
-    expect(css).toContain(':host { font-size:15px }');
-    expect(css).not.toContain('background:red');
+    expect(host.css).toContain(':host { font-size:15px }');
+    expect(host.css).not.toContain('background:red');
   });
 
   it('never adds a background, border or shadow to the render container', () => {
@@ -68,6 +69,7 @@ describe('render', () => {
     const first = render(input);
     const second = render(input);
 
+    expect(first.css).toBe(second.css);
     expect(first.shadow.innerHTML).toBe(second.shadow.innerHTML);
   });
 

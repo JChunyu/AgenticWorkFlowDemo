@@ -4,7 +4,6 @@ import { SENTINEL_FENCE } from '../../core/settings';
 
 const SENTINEL_CLASS = `language-${SENTINEL_FENCE}`;
 
-const VIEW_ROOT_SELECTOR = '.markdown-preview-view, .markdown-reading-view, .markdown-rendered';
 const LIVE_PREVIEW_SELECTOR = '.cm-editor';
 
 /** Wrapper class used by `view`; blocks already owned are never re-collected. */
@@ -17,7 +16,8 @@ export const BLOCK_WRAPPER_CLASS = 'h5r-block';
  * exact class name is the sentinel.
  */
 function isSentinelCode(codeEl: Element): boolean {
-  if (!(codeEl instanceof HTMLElement)) return false;
+  /* `instanceOf` is realm aware; `instanceof` fails for a node from a popout window. */
+  if (!codeEl.instanceOf(HTMLElement)) return false;
   if (codeEl.tagName !== 'CODE') return false;
   return codeEl.classList.contains(SENTINEL_CLASS);
 }
@@ -29,34 +29,33 @@ function sourceElementFor(codeEl: HTMLElement): HTMLElement {
     return parent;
   }
   const ancestor = codeEl.closest('pre');
-  return ancestor instanceof HTMLElement ? ancestor : codeEl;
-}
-
-function resolveScope(el: HTMLElement): ParentNode {
-  return el.closest(VIEW_ROOT_SELECTOR) ?? el;
+  return ancestor?.instanceOf(HTMLElement) ? ancestor : codeEl;
 }
 
 function sentinelCodeElements(scope: ParentNode): HTMLElement[] {
-  return Array.from(scope.querySelectorAll('code')).filter(isSentinelCode) as HTMLElement[];
+  return Array.from(scope.querySelectorAll('code')).filter(isSentinelCode);
 }
 
 /**
  * Collects sentinel blocks inside the post-processor element.
  *
+ * The reading view hands a post-processor its section element *before* that element
+ * is attached to the document, so the element must be scanned even while detached.
+ * Occurrences are counted within this element only: sibling sections are invisible
+ * during the pass that renders them (and re-appear later), so counting them would
+ * make an id flap between passes. An id that survives re-renders matters more —
+ * two identical blocks in different sections share an occurrence index and thus a
+ * store record, which is stable and harmless.
+ *
  * Ids are `{hash}:{occurrenceIndex}` where the index counts earlier blocks with an
- * identical source inside the same view root, so the id survives re-renders and a
- * content edit naturally becomes a fresh block.
+ * identical source inside the same element, so an edit naturally becomes a new block.
  */
 export function collect(el: HTMLElement): BlockDescriptor[] {
-  if (!el.isConnected && el.parentElement === null) {
-    return [];
-  }
   if (el.closest(LIVE_PREVIEW_SELECTOR)) {
     return [];
   }
 
-  const scope = resolveScope(el);
-  const all = sentinelCodeElements(scope);
+  const all = sentinelCodeElements(el);
   const seen = new Map<string, number>();
   const descriptors: BlockDescriptor[] = [];
 
@@ -65,10 +64,8 @@ export function collect(el: HTMLElement): BlockDescriptor[] {
     const occurrenceIndex = seen.get(sourceText) ?? 0;
     seen.set(sourceText, occurrenceIndex + 1);
 
-    if (!el.contains(codeEl)) {
-      continue;
-    }
-    /* Already owned by a previous pass: never double-wrap. */
+    /* Already owned by a previous pass: never double-wrap. Wrapped blocks still
+     * count toward the occurrence index so a fresh twin keeps its position. */
     if (codeEl.closest(`.${BLOCK_WRAPPER_CLASS}`)) {
       continue;
     }

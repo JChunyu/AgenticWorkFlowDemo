@@ -123,6 +123,18 @@ describe('scrub', () => {
     expect(fragment.styles.join('\n')).toContain('.card');
   });
 
+  it('still sees head-level references and styles in a full document', () => {
+    const fragment = fragmentOf(
+      '<link rel="stylesheet" href="https://example.com/a.css"><style>body{font-size:12px} .a{color:red}</style><p>x</p>',
+    );
+
+    expect(fragment.removed.some((entry) => entry.kind === 'external-reference')).toBe(true);
+    expect(fragment.contentHtml).not.toContain('<link');
+    expect(fragment.contentHtml).not.toContain('<style');
+    expect(fragment.rootStyleSeed).toBe('font-size:12px');
+    expect(fragment.styles.join('\n')).toContain('.a{color:red}');
+  });
+
   it('accepts empty content without failing', () => {
     const fragment = fragmentOf('   ');
 

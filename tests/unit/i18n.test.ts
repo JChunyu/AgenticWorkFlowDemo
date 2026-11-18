@@ -46,9 +46,10 @@ describe('i18n', () => {
   });
 
   it('detects the Obsidian interface language', () => {
-    expect(detectLang({ getItem: () => 'zh' } as unknown as Storage)).toBe('zh');
-    expect(detectLang({ getItem: () => 'zh-TW' } as unknown as Storage)).toBe('zh');
-    expect(detectLang({ getItem: () => 'en' } as unknown as Storage)).toBe('en');
-    expect(detectLang({ getItem: () => null } as unknown as Storage)).toBe('en');
+    expect(detectLang('zh')).toBe('zh');
+    expect(detectLang('zh-TW')).toBe('zh');
+    expect(detectLang('en')).toBe('en');
+    expect(detectLang(null)).toBe('en');
+    expect(detectLang(undefined)).toBe('en');
   });
 });

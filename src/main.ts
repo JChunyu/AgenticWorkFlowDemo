@@ -1,7 +1,8 @@
-import { MarkdownView, Plugin } from 'obsidian';
+import { getLanguage, MarkdownView, Plugin, type MarkdownPostProcessorContext } from 'obsidian';
 import { copyConstraintCard, insertSampleNote, registerCommands, type CommandDeps } from './adapters/commands';
 import { createEditorExtension, refreshEditorDecorations } from './adapters/editor-ext';
 import { OnboardingController } from './adapters/onboarding';
+import { containerElOf, type PostProcessorContextLike } from './adapters/post-context';
 import { H5SettingsTab, SettingsStore } from './adapters/settings';
 import { detectLang, type Lang } from './core/i18n';
 import { log, setDebugLogging } from './core/log';
@@ -18,7 +19,7 @@ export default class H5RendererPlugin extends Plugin {
   private onboarding!: OnboardingController;
 
   async onload(): Promise<void> {
-    this.lang = detectLang();
+    this.lang = detectLang(getLanguage());
     setDebugLogging(false);
 
     this.store = new SettingsStore(this);
@@ -72,8 +73,8 @@ export default class H5RendererPlugin extends Plugin {
      * post-processor, so `handleElement` short-circuits and every host is detached,
      * which is what "disabled equals plugin-absent" requires at the user surface.
      */
-    this.registerMarkdownPostProcessor((element) => {
-      this.handleElement(element);
+    this.registerMarkdownPostProcessor((element, ctx) => {
+      this.handleElement(element, ctx);
     });
 
     this.registerEvent(
@@ -96,11 +97,14 @@ export default class H5RendererPlugin extends Plugin {
     this.registry?.teardownAll(true);
   }
 
-  private handleElement(element: HTMLElement): void {
+  private handleElement(element: HTMLElement, ctx?: MarkdownPostProcessorContext): void {
     try {
       if (this.store.snapshot.enabled) {
-        this.registry.process(element);
-        this.onboarding.maybeRender(element);
+        /* `ctx.containerEl` is the note's preview root: the reading view calls this
+         * for a section before that section is attached to the document. */
+        const containerEl = containerElOf(ctx as PostProcessorContextLike | undefined);
+        this.registry.process(element, containerEl);
+        this.onboarding.maybeRender(element, containerEl);
       }
     } catch (error) {
       /* One malformed block must never take the rest of the note down with it. */

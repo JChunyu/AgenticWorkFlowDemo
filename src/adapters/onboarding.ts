@@ -1,6 +1,7 @@
 import { App } from 'obsidian';
 import { t, type Lang } from '../core/i18n';
 import { containsPlainHtmlBlock } from '../pipeline/detect';
+import { VIEW_ROOT_SELECTOR } from '../core/view-root';
 import { createOnboarding, createSampleOffer } from '../view/shell';
 import type { SettingsStore } from './settings';
 
@@ -30,7 +31,12 @@ export class OnboardingController {
     this.deps = deps;
   }
 
-  maybeRender(element: HTMLElement): void {
+  /**
+   * `containerEl` is the post-processor context's container: the reading view calls
+   * this for a section before that section is attached, so the note's root has to
+   * come from there — otherwise every section would grow its own prompt.
+   */
+  maybeRender(element: HTMLElement, containerEl?: HTMLElement): void {
     if (!this.deps.store.snapshot.enabled) {
       return;
     }
@@ -38,7 +44,13 @@ export class OnboardingController {
     if (element.closest('.cm-editor')) {
       return;
     }
-    const root = element.closest<HTMLElement>('.markdown-preview-view') ?? element;
+    /* The same root list the view registry resolves against, so a pass whose root
+     * the registry accepts (embeds, reading views) cannot fall through to `element`
+     * here and plant a prompt inside a section. */
+    const root =
+      containerEl?.closest<HTMLElement>(VIEW_ROOT_SELECTOR) ??
+      element.closest<HTMLElement>(VIEW_ROOT_SELECTOR) ??
+      element;
     if (root.querySelector(PROMPT_SELECTOR)) {
       this.hintShownThisSession = true;
       this.offerShownThisSession = true;

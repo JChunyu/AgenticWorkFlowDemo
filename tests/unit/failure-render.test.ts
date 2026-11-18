@@ -36,7 +36,10 @@ describe('render failure', () => {
     new ViewRegistry({ settings: () => DEFAULT_SETTINGS, lang: () => 'zh' }).process(view);
 
     expect(view.querySelector('.h5r-rendered-host')).toBeNull();
-    expect(view.querySelector('.h5r-block')?.classList.contains('h5r-block--failed')).toBe(true);
+    const wrapper = view.querySelector('.h5r-block');
+    expect(wrapper?.classList.contains('h5r-block--failed')).toBe(true);
+    /* No card to print, so the print rules keep the source visible for this block. */
+    expect(wrapper?.classList.contains('h5r-block--hostless')).toBe(true);
     expect(view.querySelector('.h5r-notice__text')?.textContent).toBe(t('notice.renderFailed', 'zh'));
     expect(view.querySelectorAll('.h5r-notice')).toHaveLength(1);
   });

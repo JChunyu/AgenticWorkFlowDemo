@@ -216,6 +216,20 @@ plugin does not repair it, and cannot promise it.
 - Editing-time (Live Preview) rendering: shipped in `0.1.1`, no longer a roadmap item.
 - Mobile-specific adaptation: not scheduled; nothing in the design precludes it.
 
+## Development
+
+```bash
+npm ci
+npm run lint       # the community review's own rule set (eslint-plugin-obsidianmd)
+npm run typecheck
+npm test
+npm run build      # writes main.js
+```
+
+`npm run lint` is the one that matters before a release: it runs the `obsidianmd/*`
+rules plus the DOM-safety and type-aware rules the community-plugin review applies, so
+a clean run means the source cannot fail review on those grounds.
+
 ## Versioning
 
 Versions follow semantic versioning. `manifest.json` is the single source of truth;
@@ -226,6 +240,22 @@ Versions follow semantic versioning. `manifest.json` is the single source of tru
 Breaking changes are limited to two kinds, and each ships with migration steps in the
 generated release notes: renaming the recognized fence, and changing or removing a
 setting. Nothing else in the public surface is intended to break within a major version.
+
+## Verify a release
+
+Every release is built and published by `.github/workflows/release.yml`, which attests
+the three assets it ships, so you never have to take the tag on faith:
+
+```bash
+gh release download <version> --repo JChunyu/h5-in-article-renderer
+gh attestation verify main.js --repo JChunyu/h5-in-article-renderer
+gh attestation verify manifest.json --repo JChunyu/h5-in-article-renderer
+gh attestation verify styles.css --repo JChunyu/h5-in-article-renderer
+```
+
+The workflow runs the same verification against what it just published: a missing
+or mismatched attestation fails the run and flags the release as unverified. The
+assets are already public by then, so check the run status before installing.
 
 ## Before publishing a fork
 

@@ -30,8 +30,14 @@ const NAVIGATION_ATTRIBUTES = new Set(['href', 'action', 'formaction']);
 
 const SCRIPT_SCHEMES = ['javascript:', 'vbscript:', 'data:text/html'];
 
+/**
+ * Every Unicode control character. Written as a property class so the file carries no
+ * literal control escape: `javascript:` split by a newline or a NUL is still a script.
+ */
+const CONTROL_CHARACTERS = /\p{Cc}/gu;
+
 function normalizeUrl(value: string): string {
-  return value.trim().toLowerCase().replace(/[\u0000-\u001f]/g, '');
+  return value.trim().toLowerCase().replace(CONTROL_CHARACTERS, '');
 }
 
 function isScriptUrl(value: string): boolean {
@@ -102,24 +108,24 @@ function scrubAttributes(root: ParentNode, removed: RemovedEntry[]): void {
   }
 }
 
+/** Moves every `<style>` block out of the markup and into the card's own stylesheet. */
 function extractStyles(
   root: ParentNode,
   styles: string[],
+  rootDeclarations: string[],
   removed: RemovedEntry[],
-): string {
-  const rootDeclarations: string[] = [];
+): void {
   for (const styleEl of Array.from(root.querySelectorAll('style'))) {
     const cleaned = cleanCss(styleEl.textContent ?? '');
     removed.push(...cleaned.removed);
     if (cleaned.css.trim().length > 0) {
       styles.push(cleaned.css);
     }
-    if (cleaned.rootDeclarations.length > 0) {
+    if (cleaned.rootDeclarations.trim().length > 0) {
       rootDeclarations.push(cleaned.rootDeclarations);
     }
     styleEl.remove();
   }
-  return rootDeclarations.join(';');
 }
 
 /**
@@ -127,37 +133,38 @@ function extractStyles(
  * own parser, so no markdown parsing happens here.
  */
 export function scrub(sourceText: string): Result<SanitizedFragment> {
-  if (typeof document === 'undefined') {
+  if (typeof DOMParser === 'undefined') {
     return fail(ErrorCode.ParseFailed, 'no-dom');
   }
 
-  const template = document.createElement('template');
   try {
     /*
-     * `innerHTML` is deliberate and contained here. A <template> parses into an inert
-     * document: nothing renders, no subresource loads, no handler fires, so the string
-     * is never "live". This is also the only way to get the block into DOM nodes at all.
-     * Nothing escapes this function before stripForbiddenElements / extractStyles /
-     * scrubAttributes have run, and `render` only accepts the resulting fragment.
+     * A `DOMParser` document is inert: nothing renders, no subresource loads and no
+     * handler fires, so the string is never "live" and the note's DOM is never the
+     * parse target. Nothing escapes this function before stripForbiddenElements /
+     * extractStyles / scrubAttributes have run, and `render` only accepts the result.
      */
-    template.innerHTML = sourceText;
-  } catch (error) {
-    return fail(ErrorCode.ParseFailed, error instanceof Error ? error.message : 'parse-error');
-  }
+    const parsed = new DOMParser().parseFromString(sourceText, 'text/html');
+    /* `<link>`, `<meta>` and a leading `<style>` are hoisted into `<head>`, so both
+     * halves are scrubbed; only the body becomes the card. */
+    const scopes: ParentNode[] = parsed.head ? [parsed.head, parsed.body] : [parsed.body];
 
-  const removed: RemovedEntry[] = [];
-  const styles: string[] = [];
+    const removed: RemovedEntry[] = [];
+    const styles: string[] = [];
+    const rootDeclarations: string[] = [];
 
-  try {
-    stripForbiddenElements(template.content, removed);
-    const rootStyleSeed = extractStyles(template.content, styles, removed);
-    scrubAttributes(template.content, removed);
+    for (const scope of scopes) {
+      stripForbiddenElements(scope, removed);
+      extractStyles(scope, styles, rootDeclarations, removed);
+      scrubAttributes(scope, removed);
+    }
 
     const fragment: SanitizedFragment = {
       sanitized: true,
-      contentHtml: template.innerHTML,
+      /* Read back through the serializer; no markup is ever assigned to `innerHTML`. */
+      contentHtml: parsed.body.innerHTML,
       styles,
-      rootStyleSeed,
+      rootStyleSeed: rootDeclarations.join(';'),
       removed,
     };
     return ok(fragment);

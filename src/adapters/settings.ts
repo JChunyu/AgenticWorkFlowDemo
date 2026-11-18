@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, type SettingDefinitionItem } from 'obsidian';
 import { t, type Lang } from '../core/i18n';
 import { log } from '../core/log';
 import {
@@ -72,8 +72,12 @@ export interface SettingsTabDeps {
 }
 
 /**
- * Exactly four rows in a fixed order, one title plus one explanation each.
- * No headings, no separators, no advanced section, no fifth item.
+ * Four preference rows in a fixed order, one title plus one explanation each, and the
+ * "copy AI instructions" row above them. No headings, no separators, no advanced section.
+ *
+ * The rows are described twice on purpose: `getSettingDefinitions()` is what Obsidian
+ * 1.13+ reads, which is also what makes the rows findable in settings search, while
+ * `display()` stays as the fallback for 1.12 where a tab can only be painted by hand.
  */
 export class H5SettingsTab extends PluginSettingTab {
   private readonly deps: SettingsTabDeps;
@@ -81,6 +85,81 @@ export class H5SettingsTab extends PluginSettingTab {
   constructor(app: App, plugin: Plugin, deps: SettingsTabDeps) {
     super(app, plugin);
     this.deps = deps;
+  }
+
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const lang = this.deps.lang();
+    return [
+      {
+        name: t('copy.action', lang),
+        desc: t('settings.copyIntro', lang),
+        action: () => this.deps.onCopyCard(),
+      },
+      {
+        name: t('settings.enabled.name', lang),
+        desc: t('settings.enabled.desc', lang),
+        control: { type: 'toggle', key: 'enabled' },
+      },
+      {
+        name: t('settings.defaultState.name', lang),
+        desc: t('settings.defaultState.desc', lang),
+        control: {
+          type: 'dropdown',
+          key: 'defaultState',
+          options: {
+            rendered: t('settings.state.rendered', lang),
+            source: t('settings.state.source', lang),
+          },
+        },
+      },
+      {
+        name: t('settings.showToggle.name', lang),
+        desc: t('settings.showToggle.desc', lang),
+        control: { type: 'toggle', key: 'showToggle' },
+      },
+      {
+        name: t('settings.showErrorHints.name', lang),
+        desc: t('settings.showErrorHints.desc', lang),
+        control: { type: 'toggle', key: 'showErrorHints' },
+      },
+    ];
+  }
+
+  /** Reads through the store rather than `loadData`, so the tab never diverges. */
+  getControlValue(key: string): unknown {
+    const snapshot = this.deps.store.snapshot;
+    switch (key) {
+      case 'enabled':
+        return snapshot.enabled;
+      case 'defaultState':
+        return snapshot.defaultState;
+      case 'showToggle':
+        return snapshot.showToggle;
+      case 'showErrorHints':
+        return snapshot.showErrorHints;
+      default:
+        return undefined;
+    }
+  }
+
+  /** Writes through the store so `onChange` fires and open notes follow immediately. */
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    switch (key) {
+      case 'enabled':
+        await this.deps.store.update({ enabled: value === true });
+        return;
+      case 'defaultState':
+        await this.deps.store.update({ defaultState: value === 'source' ? 'source' : 'rendered' });
+        return;
+      case 'showToggle':
+        await this.deps.store.update({ showToggle: value === true });
+        return;
+      case 'showErrorHints':
+        await this.deps.store.update({ showErrorHints: value === true });
+        return;
+      default:
+        return;
+    }
   }
 
   display(): void {

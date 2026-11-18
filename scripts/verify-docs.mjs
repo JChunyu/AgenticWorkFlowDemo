@@ -3,6 +3,7 @@
  * Release gate: the constraint card exists once, and every copy of it is in sync.
  * Exits non-zero and names the exact mismatch, so a drifted copy cannot ship.
  */
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import {
@@ -95,6 +96,33 @@ if (bundle === null) {
       problems.push(`main.js does not embed the constraint card (missing "${marker}") — run: npm run build`);
     }
   }
+}
+
+/*
+ * The lint gate must actually reach the plugin source: eslint-plugin-obsidianmd's
+ * recommended config carries its own file globs, so an upgrade can silently stop
+ * matching `src/**` and pass the release gate with zero rules applied — the exact
+ * thing the gate exists to prevent.
+ */
+const eslintBin = path.join(ROOT, 'node_modules', 'eslint', 'bin', 'eslint.js');
+try {
+  const raw = execFileSync(process.execPath, [eslintBin, '--print-config', 'src/main.ts'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const resolved = JSON.parse(raw);
+  const enabled = Object.entries(resolved.rules ?? {}).filter(([name, setting]) => {
+    if (!name.startsWith('obsidianmd/')) {
+      return false;
+    }
+    return (Array.isArray(setting) ? setting[0] : setting) !== 'off';
+  });
+  if (enabled.length === 0) {
+    problems.push('lint gate is vacuous: no enabled obsidianmd/ rules resolve for src/main.ts');
+  }
+} catch (error) {
+  problems.push(`could not resolve the eslint config for src/main.ts: ${error.message}`);
 }
 
 for (const warning of warnings) {
