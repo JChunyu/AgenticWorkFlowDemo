@@ -9,3 +9,11 @@ _bmad/
 .codebuddy/
 .zcode/
 bmad-output/
+
+# 文档工具本地缓存（提取的主题 CSS、逐帧截图、临时探针）
+# tools/assets/img 下的 webp 是示例引用的资源，需要入库；raw 是原始大图，不入库。
+tools/.cache/
+tools/assets/raw/
+
+# 会话与记忆目录
+.workbuddy/

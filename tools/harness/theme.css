@@ -1,0 +1,151 @@
+/*
+ * A hand-written stand-in for Obsidian's own reading view: the palette, the
+ * typography and the column width, nothing else. It exists so screenshots and
+ * the promo video can be produced without driving a real vault, and it is
+ * deliberately small — every value here is one Obsidian ships by default.
+ */
+
+:root {
+  --font-text: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-monospace: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --font-text-size: 16px;
+  --line-height-normal: 1.5;
+  --file-line-width: 700px;
+}
+
+.theme-light {
+  --background-primary: #ffffff;
+  --background-secondary: #f6f6f6;
+  --background-modifier-border: #e3e3e3;
+  --background-modifier-hover: rgba(0, 0, 0, 0.045);
+  --text-normal: #222222;
+  --text-muted: #5c5c5c;
+  --text-faint: #a0a0a0;
+  --text-accent: #7852ee;
+  --text-warning: #ec7500;
+  --text-success: #08b94e;
+  --text-error: #e93147;
+  --code-background: #f2f2f2;
+  --code-normal: #333333;
+  color-scheme: light;
+}
+
+.theme-dark {
+  --background-primary: #1e1e1e;
+  --background-secondary: #262626;
+  --background-modifier-border: #363636;
+  --background-modifier-hover: rgba(255, 255, 255, 0.055);
+  --text-normal: #dcddde;
+  --text-muted: #b3b3b3;
+  --text-faint: #6b6b6b;
+  --text-accent: #a68af9;
+  --text-warning: #ec7500;
+  --text-success: #08b94e;
+  --text-error: #fb464c;
+  --code-background: #2a2a2a;
+  --code-normal: #dcddde;
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-text);
+  font-size: var(--font-text-size);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The reading view itself: one centred column, generous top padding. */
+.markdown-preview-view {
+  max-width: var(--file-line-width);
+  margin: 0 auto;
+  padding: 34px 0 56px;
+}
+
+.markdown-preview-view h1,
+.markdown-preview-view h2,
+.markdown-preview-view h3 {
+  color: var(--text-normal);
+  letter-spacing: -0.011em;
+}
+
+.markdown-preview-view h1 {
+  margin: 0 0 0.42em;
+  font-size: 1.802em;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.markdown-preview-view h2 {
+  margin: 1.6em 0 0.5em;
+  font-size: 1.4em;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.markdown-preview-view h3 {
+  margin: 1.4em 0 0.4em;
+  font-size: 1.15em;
+  font-weight: 650;
+}
+
+.markdown-preview-view p {
+  margin: 0 0 0.9em;
+  line-height: 1.6;
+}
+
+.markdown-preview-view strong {
+  font-weight: 650;
+}
+
+.markdown-preview-view code {
+  padding: 0.12em 0.34em;
+  border-radius: 4px;
+  background: var(--code-background);
+  color: var(--code-normal);
+  font-family: var(--font-monospace);
+  font-size: 0.86em;
+}
+
+.markdown-preview-view a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+/* A card occupies the column; the plugin adds no frame of its own. */
+.h5r-block {
+  display: block;
+  margin: 0 0 1.1em;
+}
+
+.h5r-block .h5r-rendered-host {
+  display: block;
+  width: 100%;
+}
+
+/* The raw fenced source, only used by the before/after shots. */
+.markdown-preview-view pre {
+  margin: 0 0 1.1em;
+  padding: 12px 14px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--code-background);
+  color: var(--code-normal);
+  font-family: var(--font-monospace);
+  font-size: 0.78em;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.markdown-preview-view pre .fence {
+  color: var(--text-faint);
+}
