@@ -1,6 +1,6 @@
-# 指标卡与看板：把一堆数字排成一屏
+# Numbers and a board
 
-数字用 `tabular-nums`，竖着看不会左右跳；卡片之间只是 CSS grid，窄了自动折行，不需要另做一版。
+Figures line up with `tabular-nums`, so they do not shuffle as you scan down. Between cells there is nothing but CSS grid, and it reflows by itself when the column narrows.
 
 ```h5-renderer
 <div class="kpi">
@@ -14,28 +14,16 @@
     .kpi .foot { margin: 0; font-size: 0.76em; color: var(--text-faint); }
   </style>
   <div class="grid">
-    <div class="cell">
-      <div class="num">0<em>个</em></div>
-      <div class="label">网络请求</div>
-    </div>
-    <div class="cell">
-      <div class="num">0<em>段</em></div>
-      <div class="label">脚本被执行的</div>
-    </div>
-    <div class="cell">
-      <div class="num">0<em>字节</em></div>
-      <div class="label">写回笔记</div>
-    </div>
-    <div class="cell">
-      <div class="num">50<em>ms</em></div>
-      <div class="label">单块渲染预算</div>
-    </div>
+    <div class="cell"><div class="num">0</div><div class="label">network requests</div></div>
+    <div class="cell"><div class="num">0</div><div class="label">scripts executed</div></div>
+    <div class="cell"><div class="num">0</div><div class="label">bytes written back</div></div>
+    <div class="cell"><div class="num">50<em>ms</em></div><div class="label">render budget, per block</div></div>
   </div>
-  <p class="foot">前三个是承诺，最后一个是可以被观察到的上限：越过它就先降级成源码。</p>
+  <p class="foot">The first three are promises. The last one is a limit you can watch: cross it and the block degrades to source.</p>
 </div>
 ```
 
-看板是三列 grid，每列顶上一个状态点。列宽用 `minmax(0, 1fr)`，长标题只会换行，不会把整张卡撑破：
+The board is three grid columns, each with a status dot at the top. Column widths use `minmax(0, 1fr)`, so a long title wraps instead of stretching the card wider than the note.
 
 ```h5-renderer
 <div class="board">
@@ -53,18 +41,20 @@
     @media (max-width: 520px) { .board { grid-template-columns: 1fr; } }
   </style>
   <div class="lane">
-    <div class="title"><span class="dot"></span>待办</div>
-    <div class="ticket"><b>移动端点按目标</b><span>按钮最小 32px</span></div>
-    <div class="ticket"><b>导出 PDF 分页</b><span>不在文字行中间断开</span></div>
+    <div class="title"><span class="dot"></span>Todo</div>
+    <div class="ticket"><b>Touch targets on mobile</b><span>32px minimum</span></div>
+    <div class="ticket"><b>PDF page breaks</b><span>never mid-sentence</span></div>
   </div>
   <div class="lane doing">
-    <div class="title"><span class="dot"></span>进行中</div>
-    <div class="ticket"><b>编辑态重建门控</b><span>光标在块内就不重建</span></div>
+    <div class="title"><span class="dot"></span>Doing</div>
+    <div class="ticket"><b>Rebuild gate while typing</b><span>skip when the cursor is inside</span></div>
   </div>
   <div class="lane done">
-    <div class="title"><span class="dot"></span>已完成</div>
-    <div class="ticket"><b>阅读视图卡片</b><span>0.1.0</span></div>
-    <div class="ticket"><b>Live Preview 渲染</b><span>0.1.1</span></div>
+    <div class="title"><span class="dot"></span>Done</div>
+    <div class="ticket"><b>Card in reading view</b><span>0.1.0</span></div>
+    <div class="ticket"><b>Live preview rendering</b><span>0.1.1</span></div>
   </div>
 </div>
 ```
+
+Two cards, one note, and neither knows the other exists: a separate shadow root each, so the class names may repeat.

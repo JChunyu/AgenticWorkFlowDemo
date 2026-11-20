@@ -10,9 +10,15 @@ import { scrub } from '../../src/pipeline/scrub';
  */
 
 const EXAMPLES_DIR = join(process.cwd(), 'examples');
+/** `examples/zh/` holds the Chinese mirrors; they pass the same gate. */
+const EXAMPLE_DIRS = [EXAMPLES_DIR, join(EXAMPLES_DIR, 'zh')];
 const LITERAL_COLOUR = /#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/i;
 
-const files = readdirSync(EXAMPLES_DIR).filter((name) => name.endsWith('.md'));
+const files = EXAMPLE_DIRS.flatMap((dir) =>
+  readdirSync(dir)
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => ({ dir, name })),
+);
 
 function cardsIn(markdown: string): string[] {
   const cards: string[] = [];
@@ -40,8 +46,8 @@ describe('example notes', () => {
   });
 
   for (const file of files) {
-    describe(file, () => {
-      const markdown = readFileSync(join(EXAMPLES_DIR, file), 'utf8');
+    describe(file.name, () => {
+      const markdown = readFileSync(join(file.dir, file.name), 'utf8');
       const cards = cardsIn(markdown);
 
       it('has at least one card', () => {

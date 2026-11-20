@@ -1,6 +1,6 @@
-# 流程图：一个块从粘贴到卡片
+# One block, from paste to card
 
-主流程在左，右边那条虚线是唯一的岔路——fence 名不对，插件就当没看见。用 HTML 排而不是画成一张图，好处是节点里的字仍然可以选中、可以改，字号跟着笔记走。
+The main path runs down the middle; the dashed branch on the right is the only exit — the fence name does not match, so the plugin never sees it. Laid out as HTML rather than drawn as a picture, the words inside the nodes stay selectable and editable.
 
 ```h5-renderer
 <div class="flow">
@@ -20,24 +20,24 @@
     }
   </style>
   <div class="main">
-    <div class="node">在笔记里写一段 HTML<small>围在 h5-renderer 里</small></div>
+    <div class="node">Write some HTML in a note<small>wrapped in h5-renderer</small></div>
     <span class="arrow"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M6 0v14" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 12l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <div class="node gate">fence 名对得上吗<small>只认小写的 h5-renderer</small></div>
+    <div class="node gate">Does the fence name match?<small>lowercase h5-renderer, nothing else</small></div>
     <span class="arrow"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M6 0v14" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 12l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <div class="node">清洗<small>script、on*、远程引用在显示前剥掉</small></div>
+    <div class="node">Scrub<small>scripts, on*, remote references removed</small></div>
     <span class="arrow"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M6 0v14" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 12l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <div class="node">渲染<small>放进 shadow root，继承笔记的变量</small></div>
+    <div class="node">Render<small>into a shadow root, inheriting the note</small></div>
     <span class="arrow"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M6 0v14" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 12l4 5 4-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <div class="node">你看到一张卡<small>同主题、同宽度、同字号</small></div>
+    <div class="node">You see a card<small>same theme, same width, same type</small></div>
   </div>
   <div class="side">
-    <span class="cap">对不上就走这条</span>
-    <div class="node">原样留着<small>普通代码块，和装插件之前一模一样</small></div>
+    <span class="cap">or take this exit</span>
+    <div class="node">Left exactly as it was<small>a plain code block, as before the plugin</small></div>
   </div>
 </div>
 ```
 
-同一个块还有三个可能的出口，第二张卡把三种结局摆在一起：
+The same block has three possible endings, and the second card puts them side by side: a card, source plus a notice, or a plain code block the plugin never touched.
 
 ```h5-renderer
 <div class="outcomes">
@@ -50,19 +50,21 @@
     @media (max-width: 520px) { .outcomes { grid-template-columns: 1fr; } }
   </style>
   <div class="col">
-    <span class="tag">顺利</span>
-    <h4>卡片</h4>
-    <p>渲染在 50ms 预算内完成，当场替换掉代码块。</p>
+    <span class="tag">In budget</span>
+    <h4>A card</h4>
+    <p>Rendered inside 50 ms, the code block is replaced on the spot.</p>
   </div>
   <div class="col">
-    <span class="tag">超预算</span>
-    <h4>源码加一条提示</h4>
-    <p>越过 500ms 立刻降级；点「预览」可以再渲染一次。</p>
+    <span class="tag">Over budget</span>
+    <h4>Source and a notice</h4>
+    <p>Past 500 ms it degrades immediately; Preview renders it once more.</p>
   </div>
   <div class="col">
-    <span class="tag">不是这个 fence</span>
-    <h4>普通代码块</h4>
-    <p>插件完全不碰它，控制台也不会多一句警告。</p>
+    <span class="tag">Wrong fence</span>
+    <h4>A plain code block</h4>
+    <p>Untouched by the plugin, with not one extra console warning.</p>
   </div>
 </div>
 ```
+
+Only the first ending is the common one. The other two are quiet on purpose — a note should never fail loudly because a block did.

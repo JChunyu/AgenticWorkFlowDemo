@@ -25,10 +25,13 @@ rule *n* of the card — the mapping is positional and one to one.
    ```
 
 2. 只写静态内容：div / span / table / svg / style。
+   需要"能点"的效果时，只用 CSS 原生控件：details + summary、
+   input[type=checkbox|radio] + label、:hover / :focus-within / :focus-visible / :checked。
    不要写 <script>、不要写 on* 事件属性、不要写 javascript: 链接。
 
 3. 不引用任何外部资源：不写 <link>、@import、远程字体、CDN 脚本、外部图片 URL。
-   需要图形请用内联 <svg>。
+   图形优先用内联 <svg>；要用照片就内联成 data: URL（base64），
+   不要写 https:// 开头的 src。
 
 4. 样式集中在一个 <style> 里，选择器收敛：
    不要把规则写到 body / html / * / :root 上；
