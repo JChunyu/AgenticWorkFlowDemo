@@ -1,7 +1,7 @@
 {
   "name": "h5-in-article-renderer",
   "version": "0.1.5",
-  "description": "Obsidian plugin that renders h5-renderer code blocks as visual cards inheriting the note theme.",
+  "description": "Render AI-written HTML blocks as cards matching your vault's theme, width and typography in edit and reading view. Only h5-renderer fences render; scripts and remote resources are stripped, so nothing runs, nothing fetches and files never change.",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -15,7 +15,10 @@
     "lint": "eslint src",
     "test": "vitest run",
     "sync-docs": "node scripts/sync-docs.mjs",
-    "verify-docs": "node scripts/verify-docs.mjs"
+    "verify-docs": "node scripts/verify-docs.mjs",
+    "examples": "node tools/build-examples.mjs",
+    "shots": "node tools/screenshots.mjs",
+    "video": "node tools/video.mjs"
   },
   "devDependencies": {
     "@types/node": "22.13.17",
@@ -24,6 +27,7 @@
     "eslint-plugin-obsidianmd": "0.6.0",
     "happy-dom": "21.0.4",
     "obsidian": "1.14.4",
+    "puppeteer-core": "23.11.1",
     "typescript": "5.7.3",
     "typescript-eslint": "8.73.0",
     "vitest": "5.1.0"
