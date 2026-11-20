@@ -8,7 +8,7 @@ Built for the blocks an AI hands you.
 
 *One block. No edits between the two halves.*
 
-**30-second tour:** [watch the mp4](docs/video/h5-card-renderer-en.mp4) ·
+**30-second tour, narrated:** [watch the mp4](docs/video/h5-card-renderer-en.mp4) ·
 Chinese version: [README.zh-CN.md](README.zh-CN.md) ·
 [![verify](https://github.com/JChunyu/h5-in-article-renderer/actions/workflows/verify.yml/badge.svg)](https://github.com/JChunyu/h5-in-article-renderer/actions/workflows/verify.yml)
 
@@ -306,6 +306,7 @@ The images and examples in `docs/` are generated, never hand-edited:
 npm run examples   # examples/*.md and examples/zh/*.md, from tools/demos.mjs
 npm run shots      # docs/screenshots/*.png, through the real scrub + render stages
 npm run video      # docs/video/*.mp4, from the same cards
+npm run voice      # narration for them, from tools/video/copy.mjs
 ```
 
 ## Versioning

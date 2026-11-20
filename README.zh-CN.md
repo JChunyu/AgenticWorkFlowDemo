@@ -6,7 +6,7 @@
 
 *同一个块。左右两半之间，一个字都没改。*
 
-**30 秒速览：** [看这段视频](docs/video/h5-card-renderer-zh.mp4) ·
+**30 秒速览（有配音）：** [看这段视频](docs/video/h5-card-renderer-zh.mp4) ·
 English version: [README.md](README.md) ·
 [![verify](https://github.com/JChunyu/h5-in-article-renderer/actions/workflows/verify.yml/badge.svg)](https://github.com/JChunyu/h5-in-article-renderer/actions/workflows/verify.yml)
 
@@ -263,6 +263,7 @@ npm run build      # 产出 main.js
 npm run examples   # 由 tools/demos.mjs 生成 examples/*.md 与 examples/zh/*.md
 npm run shots      # 走真实的 scrub + render 两段，产出 docs/screenshots/*.png
 npm run video      # 用同一批卡片产出 docs/video/*.mp4
+npm run voice      # 按 tools/video/copy.mjs 给视频配解说
 ```
 
 ## 版本

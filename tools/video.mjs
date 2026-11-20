@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Renders the promo video: 1920x1080, 30 fps, one PNG per frame, encoded with the
- * ffmpeg already on the machine.
+ * ffmpeg already on the machine, then voiced from `tools/video/copy.mjs`.
  *
  *   npm run video           # both languages
  *   npm run video -- en     # one
@@ -17,6 +17,7 @@ import { demos } from './demos.mjs';
 import { expandAssets } from './build-examples.mjs';
 import { CACHE, ROOT, buildHarness, composePage, launch } from './lib/pipeline.mjs';
 import { inline } from './lib/prose.mjs';
+import { addVoiceover } from './video/voice.mjs';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -231,6 +232,9 @@ async function render(lang) {
   await encode(frames, output);
   const size = (await readdir(frames)).length;
   await rm(frames, { recursive: true, force: true });
+  /* Frames first, narration second: the picture is already right, so the voice
+   * is muxed in rather than re-encoded with it. */
+  await addVoiceover(output, lang);
   console.info(`[video] ${path.relative(ROOT, output)} — ${size} frames`);
   return output;
 }

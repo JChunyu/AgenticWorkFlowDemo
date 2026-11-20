@@ -18,7 +18,8 @@
     "verify-docs": "node scripts/verify-docs.mjs",
     "examples": "node tools/build-examples.mjs",
     "shots": "node tools/screenshots.mjs",
-    "video": "node tools/video.mjs"
+    "video": "node tools/video.mjs",
+    "voice": "node tools/video/voice.mjs"
   },
   "devDependencies": {
     "@types/node": "22.13.17",
