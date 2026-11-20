@@ -58,6 +58,29 @@ export function isCardControlEvent(event: Event): boolean {
   return false;
 }
 
+/**
+ * On mobile, `ignoreEvent` correctly tells CM6 to drop the touch event, but the
+ * browser still places the caret via a native `selectionchange` that CM6's
+ * DOMObserver picks up — the cursor enters the block and the card collapses.
+ *
+ * A direct `touchend` listener on the card element runs outside CM6's event
+ * pipeline: `preventDefault()` stops the browser from setting the selection, and
+ * `click()` re-delivers the tap to the CSS-only control so `:checked` /
+ * `<details>` / links still work.
+ */
+function touchGuard(event: Event): void {
+  if (!isCardControlEvent(event)) return;
+  event.preventDefault();
+  const path = event.composedPath();
+  for (const node of path) {
+    const el = node as HTMLElement;
+    if (typeof el?.matches === 'function' && el.matches(CARD_CONTROL) && typeof el.click === 'function') {
+      window.setTimeout(() => el.click(), 0);
+      return;
+    }
+  }
+}
+
 /** Block identity carried by the element itself, so a click needs no shared index. */
 const CARD_BLOCK_ATTR = 'data-h5r-block';
 
@@ -188,7 +211,12 @@ export function createEditorExtension(deps: EditorExtDeps): CmState.Extension {
     }
 
     toDOM(_view: CmView.EditorView): HTMLElement {
-      return cardElement(this.block) ?? sourceStandIn(this.block);
+      const el = cardElement(this.block) ?? sourceStandIn(this.block);
+      el.addEventListener('mousedown', (e) => {
+        if (isCardControlEvent(e)) e.preventDefault();
+      });
+      el.addEventListener('touchend', touchGuard, { passive: false });
+      return el;
     }
 
     /**

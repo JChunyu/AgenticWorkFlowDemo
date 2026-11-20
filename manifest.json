@@ -6,5 +6,5 @@
   "description": "Render AI-written HTML blocks as cards matching your vault's theme, width and typography in edit and reading view. Only h5-renderer fences render; scripts and remote resources are stripped, so nothing runs, nothing fetches and files never change.",
   "author": "Chunyu Jiang",
   "authorUrl": "https://github.com/JChunyu",
-  "isDesktopOnly": true
+  "isDesktopOnly": false
 }
