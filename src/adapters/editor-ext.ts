@@ -58,6 +58,19 @@ export function isCardControlEvent(event: Event): boolean {
   return false;
 }
 
+/** Controls that need native mousedown default (focus placement, dropdown opening). */
+const NATIVE_FOCUS_CONTROL = 'select, textarea, input:not([type="radio"]):not([type="checkbox"])';
+
+export function mouseGuard(event: Event): void {
+  if (!isCardControlEvent(event)) return;
+  const path = event.composedPath();
+  for (const node of path) {
+    const el = node as Element | null;
+    if (typeof el?.matches === 'function' && el.matches(NATIVE_FOCUS_CONTROL)) return;
+  }
+  event.preventDefault();
+}
+
 /**
  * On mobile, `ignoreEvent` correctly tells CM6 to drop the touch event, but the
  * browser still places the caret via a native `selectionchange` that CM6's
@@ -68,7 +81,7 @@ export function isCardControlEvent(event: Event): boolean {
  * `click()` re-delivers the tap to the CSS-only control so `:checked` /
  * `<details>` / links still work.
  */
-function touchGuard(event: Event): void {
+export function touchGuard(event: Event): void {
   if (!isCardControlEvent(event)) return;
   event.preventDefault();
   const path = event.composedPath();
@@ -212,9 +225,7 @@ export function createEditorExtension(deps: EditorExtDeps): CmState.Extension {
 
     toDOM(_view: CmView.EditorView): HTMLElement {
       const el = cardElement(this.block) ?? sourceStandIn(this.block);
-      el.addEventListener('mousedown', (e) => {
-        if (isCardControlEvent(e)) e.preventDefault();
-      });
+      el.addEventListener('mousedown', mouseGuard);
       el.addEventListener('touchend', touchGuard, { passive: false });
       return el;
     }

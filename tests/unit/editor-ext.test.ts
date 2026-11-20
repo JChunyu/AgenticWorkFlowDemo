@@ -1,7 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createEditorExtension,
   isCardControlEvent,
+  mouseGuard,
+  touchGuard,
   refreshEditorDecorations,
 } from '../../src/adapters/editor-ext';
 
@@ -264,6 +266,85 @@ describe('createEditorExtension', () => {
     expect(isCardControlEvent(path())).toBe(false);
     /* An event without `composedPath` must not be mistaken for a control click. */
     expect(isCardControlEvent({} as Event)).toBe(false);
+  });
+
+  it('mouseGuard prevents default on toggle controls but not on text-entry controls', () => {
+    function synth(...nodes: Node[]): Event & { defaultPrevented: boolean } {
+      let prevented = false;
+      return {
+        composedPath: () => nodes,
+        preventDefault() { prevented = true; },
+        get defaultPrevented() { return prevented; },
+      } as unknown as Event & { defaultPrevented: boolean };
+    }
+
+    const label = synth(document.createElement('label'));
+    mouseGuard(label);
+    expect(label.defaultPrevented).toBe(true);
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    const radioEvt = synth(radio);
+    mouseGuard(radioEvt);
+    expect(radioEvt.defaultPrevented).toBe(true);
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    const cbEvt = synth(checkbox);
+    mouseGuard(cbEvt);
+    expect(cbEvt.defaultPrevented).toBe(true);
+
+    const select = synth(document.createElement('select'));
+    mouseGuard(select);
+    expect(select.defaultPrevented).toBe(false);
+
+    const textarea = synth(document.createElement('textarea'));
+    mouseGuard(textarea);
+    expect(textarea.defaultPrevented).toBe(false);
+
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    const textEvt = synth(textInput);
+    mouseGuard(textEvt);
+    expect(textEvt.defaultPrevented).toBe(false);
+
+    const div = synth(document.createElement('div'));
+    mouseGuard(div);
+    expect(div.defaultPrevented).toBe(false);
+  });
+
+  it('touchGuard prevents default and re-delivers click on a card control', () => {
+    vi.useFakeTimers();
+    try {
+      let prevented = false;
+      let clicked = false;
+      const btn = document.createElement('button');
+      btn.click = () => { clicked = true; };
+      const event = {
+        composedPath: () => [btn],
+        preventDefault() { prevented = true; },
+      } as unknown as Event;
+
+      touchGuard(event);
+      expect(prevented).toBe(true);
+      expect(clicked).toBe(false);
+      vi.runAllTimers();
+      expect(clicked).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('touchGuard does nothing for non-control events', () => {
+    let prevented = false;
+    const div = document.createElement('div');
+    const event = {
+      composedPath: () => [div],
+      preventDefault() { prevented = true; },
+    } as unknown as Event;
+
+    touchGuard(event);
+    expect(prevented).toBe(false);
   });
 
   it('cards every sentinel block and nothing else', () => {
